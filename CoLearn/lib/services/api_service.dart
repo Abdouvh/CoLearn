@@ -1,0 +1,272 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart'; // For kIsWeb check
+
+class ApiService {
+  // 1. IP CONFIGURATION
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:8080/api/auth';
+    } else {
+      // Android Emulator IP
+      return 'http://10.0.2.2:8080/api/auth';
+    }
+  }
+
+  // --- AUTHENTICATION ---
+
+  static Future<Map<String, dynamic>> registerUser({
+    required String fullName,
+    required String email,
+    required String password,
+    required String role,
+    required String expertiseLevel,
+    required String learningStyle,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'fullName': fullName,
+          'email': email,
+          'password': password,
+          'role': role,
+          'expertiseLevel': expertiseLevel,
+          'learningStyle': learningStyle,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Erreur Inscription (${response.statusCode}): ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur de connexion: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Erreur Connexion: Vérifiez vos identifiants');
+      }
+    } catch (e) {
+      throw Exception('Erreur de connexion: $e');
+    }
+  }
+
+  // --- ADMIN METHODS ---
+
+  static Future<List<dynamic>> getAllUsers() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/users'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Erreur chargement utilisateurs');
+      }
+    } catch (e) {
+      throw Exception('Erreur Admin: $e');
+    }
+  }
+
+  static Future<void> deleteUser(int id) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl/users/$id'));
+      if (response.statusCode != 200) {
+        throw Exception('Erreur lors de la suppression');
+      }
+    } catch (e) {
+      throw Exception('Erreur suppression: $e');
+    }
+  }
+
+  // --- AI COURSE GENERATOR & COURSES ---
+
+  static Future<Map<String, dynamic>> generateCourse(String topic, String level, String language) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/courses/generate');
+      print("✨ Generating course at: $url");
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'topic': topic,
+          'level': level,
+          'language': language
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        throw Exception("Generation failed: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  static Future<List<dynamic>> getMyCourses() async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/courses');
+      print("🔍 Fetching courses from: $url");
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error fetching courses: $e");
+      return [];
+    }
+  }
+
+  // --- UNLOCK MODULE (Fixed: Returns bool to confirm success) ---
+  static Future<bool> unlockModule(int moduleId) async {
+    try {
+      // 1. Build URL
+      String url = baseUrl.replaceAll('/auth', '/courses/modules/$moduleId/unlock');
+      print("🔓 Unlocking Module ID: $moduleId at $url");
+
+      // 2. Send PUT Request
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      // 3. Return True if Success
+      if (response.statusCode == 200) {
+        print("✅ SUCCESS: Module saved as unlocked in DB.");
+        return true;
+      } else {
+        print("❌ ERROR: Server rejected save. Status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print("❌ EXCEPTION during save: $e");
+      return false;
+    }
+  }
+
+  // --- CHAT SYSTEM ---
+
+  static Future<List<dynamic>> getMessages(String groupName) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/chat/$groupName');
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<void> sendMessage(String sender, String content, String groupName) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/chat');
+      await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'sender': sender,
+          'content': content,
+          'groupName': groupName
+        }),
+      );
+    } catch (e) {
+      print("Error sending message: $e");
+    }
+  }
+
+  // --- PASSWORD RESET ---
+
+  static Future<void> requestPasswordReset({required String email}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email}),
+      );
+      if (response.statusCode != 200) throw Exception("Erreur demande");
+    } catch (e) {
+      throw Exception('Erreur: $e');
+    }
+  }
+
+  static Future<void> verifyResetCode({required String email, required String code}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-reset-code'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'code': code}),
+      );
+      if (response.statusCode != 200) throw Exception('Code invalide');
+    } catch (e) {
+      throw Exception('Erreur: $e');
+    }
+  }
+
+  static Future<void> confirmResetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/confirm-reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'code': code, 'newPassword': newPassword}),
+      );
+      if (response.statusCode != 200) throw Exception('Échec reset');
+    } catch (e) {
+      throw Exception('Erreur: $e');
+    }
+  }
+
+  // --- GOOGLE OAUTH ---
+
+  static Future<Map<String, dynamic>> loginWithGoogle({required String idToken}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/oauth/google'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'idToken': idToken}),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Erreur Google Auth');
+      }
+    } catch (e) {
+      throw Exception('Erreur de connexion: $e');
+    }
+  }
+}
