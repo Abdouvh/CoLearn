@@ -1,106 +1,99 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:colearn/services/api_service.dart';
 
 class GroupsController extends GetxController {
-  // 1. Dynamic List - NOW INCLUDES 'inviteLink'
-  var myGroups = <Map<String, dynamic>>[
-    {
-      "name": "Flutter Developers",
-      "members": 12,
-      "nextSession": "Demain, 10:00",
-      "color": Colors.blueAccent,
-      "icon": Icons.code,
-      "inviteLink": "colearn.app/join/flutter" // Specific link
-    },
-    {
-      "name": "Spring Boot Masters",
-      "members": 5,
-      "nextSession": "Lun, 14:00",
-      "color": Colors.green,
-      "icon": Icons.storage,
-      "inviteLink": "colearn.app/join/spring" // Specific link
-    },
-  ].obs;
+  var myGroups = <Map<String, dynamic>>[].obs;
+  var isLoading = false.obs;
 
-  // 2. Create Group
-  void createGroup(String name, String time) {
-    myGroups.add({
-      "name": name,
-      "members": 1,
-      "nextSession": time,
-      "color": Colors.orange,
-      "icon": Icons.school,
-      // Generate a fake link based on the name
-      "inviteLink": "colearn.app/join/${name.replaceAll(' ', '').toLowerCase()}"
-    });
-
-    Get.back();
-    Get.snackbar("Succès", "Le groupe '$name' a été créé !",
-        backgroundColor: Colors.green, colorText: Colors.white);
+  @override
+  void onInit() {
+    super.onInit();
+    fetchGroups();
   }
 
-  // 3. SMART JOIN GROUP (Checks the link text!)
-  void joinGroup(String text) {
-    Get.back(); // Close dialog
+  Future<void> fetchGroups() async {
+    isLoading.value = true;
+    var groups = await ApiService.getGroups();
+    
+    // Map backend response to UI model if fields differ, or use directly
+    // Backend returns: id, name, nextSession, icon, color, inviteLink
+    // UI expects: name, members (missing in backend for now, default to 1), nextSession, color (hex string), icon (string name)
+    
+    myGroups.value = groups.map((g) {
+      return {
+        "id": g['id'], // Store ID for chat linking
+        "name": g['name'],
+        "members": g['members'] != null ? (g['members'] as List).length : 1, // Calculate members if list returned
+        "nextSession": g['nextSession'],
+        "color": _parseColor(g['color']),
+        "icon": _parseIcon(g['icon']),
+        "inviteLink": g['inviteLink']
+      };
+    }).toList().cast<Map<String, dynamic>>();
+    
+    isLoading.value = false;
+  }
 
-    // Simulate Loading
-    Get.snackbar(
-      "Recherche...",
-      "Analyse du lien d'invitation...",
-      showProgressIndicator: true,
-      backgroundColor: Colors.black54,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
+  // 2. Create Group
+  void createGroup(String name, String time) async {
+    Get.back(); // Close dialog first or after? Usually before loading.
+    
+    Get.snackbar("Création...", "Veuillez patienter", showProgressIndicator: true, backgroundColor: Colors.black54, colorText: Colors.white);
 
-    // Simulate Network Delay
-    Future.delayed(const Duration(seconds: 2), () {
-      String lowerText = text.toLowerCase();
-      Map<String, dynamic> newGroup;
+    bool success = await ApiService.createGroup(name, time);
 
-      // SMART LOGIC: Check what the user pasted
-      if (lowerText.contains("flutter")) {
-        newGroup = {
-          "name": "Advanced Flutter",
-          "members": 45,
-          "nextSession": "Sam 10:00",
-          "color": Colors.blue,
-          "icon": Icons.flutter_dash,
-          "inviteLink": "colearn.app/join/flutter-adv"
-        };
-      } else if (lowerText.contains("spring") || lowerText.contains("java")) {
-        newGroup = {
-          "name": "Java Experts",
-          "members": 20,
-          "nextSession": "Dim 18:00",
-          "color": Colors.redAccent,
-          "icon": Icons.coffee,
-          "inviteLink": "colearn.app/join/java"
-        };
-      } else if (lowerText.contains("design") || lowerText.contains("ui")) {
-        newGroup = {
-          "name": "UI/UX Designers",
-          "members": 15,
-          "nextSession": "Ven 14:00",
-          "color": Colors.purple,
-          "icon": Icons.palette,
-          "inviteLink": "colearn.app/join/design"
-        };
-      } else {
-        // Fallback for random text
-        newGroup = {
-          "name": "Groupe Invité",
-          "members": 3,
-          "nextSession": "TBD",
-          "color": Colors.grey,
-          "icon": Icons.group,
-          "inviteLink": "colearn.app/join/guest"
-        };
-      }
-
-      myGroups.add(newGroup);
-      Get.snackbar("Succès", "Vous avez rejoint: ${newGroup['name']}",
+    if (success) {
+      await fetchGroups(); // Refresh list
+      Get.snackbar("Succès", "Le groupe '$name' a été créé !",
           backgroundColor: Colors.green, colorText: Colors.white);
-    });
+    } else {
+      Get.snackbar("Erreur", "Impossible de créer le groupe.",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+  // 3. Join Group
+  void joinGroup(String link) async {
+    Get.back(); // Close dialog
+    
+    Get.snackbar("Recherche...", "Tentative de rejoindre...",
+        showProgressIndicator: true, backgroundColor: Colors.black54, colorText: Colors.white);
+
+    var joinedGroup = await ApiService.joinGroup(link);
+
+    if (joinedGroup != null) {
+      await fetchGroups(); // Refresh
+      Get.snackbar("Succès", "Vous avez rejoint: ${joinedGroup['name']}",
+          backgroundColor: Colors.green, colorText: Colors.white);
+    } else {
+      Get.snackbar("Erreur", "Groupe introuvable ou erreur.",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
+  }
+
+  // Helpers
+  Color _parseColor(String? colorStr) {
+    if (colorStr == null) return Colors.blue;
+    try {
+      if (colorStr.startsWith("0x")) {
+        return Color(int.parse(colorStr));
+      }
+      return Colors.blue;
+    } catch (e) {
+      return Colors.blue;
+    }
+  }
+
+  IconData _parseIcon(String? iconName) {
+    switch (iconName) {
+      case "code": return Icons.code;
+      case "storage": return Icons.storage;
+      case "school": return Icons.school;
+      case "flutter_dash": return Icons.flutter_dash;
+      case "coffee": return Icons.coffee;
+      case "palette": return Icons.palette;
+      default: return Icons.group;
+    }
   }
 }

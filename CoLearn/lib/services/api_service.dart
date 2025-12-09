@@ -242,6 +242,7 @@ class ApiService {
         return [];
       }
     } catch (e) {
+      print("Error fetching messages: $e");
       return [];
     }
   }
@@ -260,6 +261,67 @@ class ApiService {
       );
     } catch (e) {
       print("Error sending message: $e");
+    }
+  }
+
+  // --- GROUPS SYSTEM ---
+
+  static Future<bool> createGroup(String name, String nextSession) async {
+    try {
+      if (currentUser == null) return false;
+      String url = baseUrl.replaceAll('/auth', '/groups/create');
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': name,
+          'nextSession': nextSession,
+          'userId': currentUser!['id']
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error creating group: $e");
+      return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> joinGroup(String inviteLink) async {
+    try {
+      if (currentUser == null) return null;
+      String url = baseUrl.replaceAll('/auth', '/groups/join');
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'inviteLink': inviteLink,
+          'userId': currentUser!['id']
+        }),
+      );
+      
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return null;
+    } catch (e) {
+      print("Error joining group: $e");
+      return null;
+    }
+  }
+
+  static Future<List<dynamic>> getGroups() async {
+    try {
+      if (currentUser == null) return [];
+      String url = baseUrl.replaceAll('/auth', '/groups?userId=${currentUser!['id']}');
+      final response = await http.get(Uri.parse(url));
+      
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching groups: $e");
+      return [];
     }
   }
 

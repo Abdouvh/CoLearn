@@ -1,5 +1,7 @@
 import 'package:colearn/consts/consts.dart';
+import 'package:colearn/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class ChatScreen extends StatefulWidget {
   final String groupName;
@@ -11,37 +13,66 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _msgController = TextEditingController();
+  List<Map<String, dynamic>> messages = [];
+  Timer? _timer;
+  final ScrollController _scrollController = ScrollController();
 
-  // Fake Messages List
-  final List<Map<String, dynamic>> messages = [
-    {"text": "Bonjour tout le monde !", "isMe": false, "sender": "Alice"},
-    {"text": "Quelqu'un a fini le module 3 ?", "isMe": false, "sender": "Bob"},
-    {"text": "Oui, c'était facile.", "isMe": true, "sender": "Moi"},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchMessages();
+    // Poll every 2 seconds
+    _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      _fetchMessages();
+    });
+  }
 
-  void sendMessage() {
+  Future<void> _fetchMessages() async {
+    List<dynamic> raw = await ApiService.getMessages(widget.groupName);
+    if (!mounted) return;
+    
+    final myName = ApiService.currentUser?['fullName'] ?? "Moi";
+
+    setState(() {
+      messages = raw.map((m) => {
+        "text": m['content'] ?? m['text'], // Backend sends 'content', fallback to 'text'
+        "sender": m['sender'] ?? "Anonyme",
+        "isMe": m['sender'] == myName
+      }).toList().cast<Map<String, dynamic>>();
+      
+      // Auto scroll only if at bottom? For now just keep it simple.
+    });
+  }
+
+  void sendMessage() async {
     if (_msgController.text.isNotEmpty) {
+      String text = _msgController.text;
+      _msgController.clear();
+      
+      final myName = ApiService.currentUser?['fullName'] ?? "Moi";
+
+      // Optimistic update
       setState(() {
         messages.add({
-          "text": _msgController.text,
+          "text": text,
           "isMe": true,
-          "sender": "Moi"
+          "sender": myName
         });
       });
-      _msgController.clear();
+      _scrollToBottom();
 
-      // Simulate auto-reply after 2 seconds
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            messages.add({
-              "text": "Merci pour l'info !",
-              "isMe": false,
-              "sender": "Alice"
-            });
-          });
-        }
-      });
+      await ApiService.sendMessage(myName, text, widget.groupName);
+      _fetchMessages(); // Refresh to be sure
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent + 60, // Add a bit of buffer
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
@@ -53,42 +84,54 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Text(widget.groupName, style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.grey[900],
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {},
-          )
-        ],
       ),
       body: Column(
         children: [
           // Chat List
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.all(20),
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final msg = messages[index];
+                final isMe = msg['isMe'];
                 return Align(
-                  alignment: msg['isMe'] ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: msg['isMe'] ? lightBlue : Colors.grey[800],
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(12),
-                        topRight: const Radius.circular(12),
-                        bottomLeft: msg['isMe'] ? const Radius.circular(12) : const Radius.circular(0),
-                        bottomRight: msg['isMe'] ? const Radius.circular(0) : const Radius.circular(12),
-                      ),
-                    ),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                       children: [
-                        if (!msg['isMe'])
-                          Text(msg['sender'], style: TextStyle(color: Colors.grey[400], fontSize: 10)),
-                        Text(msg['text'], style: const TextStyle(color: Colors.white)),
+                        if (!isMe)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4, bottom: 4),
+                            child: Text(
+                              msg['sender'], 
+                              style: const TextStyle(
+                                color: Colors.grey, 
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold
+                              )
+                            ),
+                          ),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isMe ? lightBlue : Colors.grey[800],
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(16),
+                              topRight: const Radius.circular(16),
+                              bottomLeft: isMe ? const Radius.circular(16) : const Radius.circular(2),
+                              bottomRight: isMe ? const Radius.circular(2) : const Radius.circular(16),
+                            ),
+                          ),
+                          child: Text(
+                            msg['text'] ?? "", 
+                            style: const TextStyle(color: Colors.white)
+                          ),
+                        ),
                       ],
                     ),
                   ),
