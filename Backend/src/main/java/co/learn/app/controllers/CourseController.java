@@ -25,16 +25,28 @@ public class CourseController {
     private ModuleRepository moduleRepository;
 
     @Autowired
+    private co.learn.app.repositories.UserRepository userRepository;
+
+    @Autowired
     private co.learn.app.services.GeminiService geminiService;
 
     @Autowired
     private com.google.gson.Gson gson;
 
     @PostMapping("/generate")
-    public Course generateCourse(@RequestBody Map<String, String> request) {
-        String topic = request.get("topic");
-        String lang = request.get("language"); // "fr" or "en"
-        String level = request.get("level");
+    public ResponseEntity<?> generateCourse(@RequestBody Map<String, Object> request) {
+        String topic = (String) request.get("topic");
+        String lang = (String) request.get("language"); // "fr" or "en"
+        String level = (String) request.get("level");
+        Object userIdObj = request.get("userId");
+        Long userId = null;
+        if (userIdObj instanceof Number) {
+            userId = ((Number) userIdObj).longValue();
+        }
+
+        if (userId == null) {
+            return ResponseEntity.badRequest().body("User ID is required");
+        }
 
         // 1. Construct the Prompt (Updated with Escaping Instructions)
         String languageName = "fr".equalsIgnoreCase(lang) ? "French" : "English";
@@ -68,16 +80,16 @@ public class CourseController {
         jsonResponse = jsonResponse.replace("```json", "").replace("```", "").trim();
 
         try {
-            return parseAndSaveCourse(jsonResponse, topic, level, lang);
+            return ResponseEntity.ok(parseAndSaveCourse(jsonResponse, topic, level, lang, userId));
         } catch (Exception e) {
             System.err.println("First parse attempt failed: " + e.getMessage());
             // Retry with aggressive sanitization
             String sanitizedJson = sanitizeJson(jsonResponse);
             try {
-                return parseAndSaveCourse(sanitizedJson, topic, level, lang);
+                return ResponseEntity.ok(parseAndSaveCourse(sanitizedJson, topic, level, lang, userId));
             } catch (Exception ex) {
                 System.err.println("Second parse attempt failed: " + ex.getMessage());
-                throw new RuntimeException("Failed to generate course. Please try again.");
+                return ResponseEntity.internalServerError().body("Failed to generate course. Please try again.");
             }
         }
     }
@@ -90,7 +102,7 @@ public class CourseController {
         return json.replaceAll("\\\\(?![\\\\\"/bfnrtu])", "\\\\\\\\");
     }
 
-    private Course parseAndSaveCourse(String jsonResponse, String topic, String level, String lang) {
+    private Course parseAndSaveCourse(String jsonResponse, String topic, String level, String lang, Long userId) {
         Map<String, Object> data = gson.fromJson(jsonResponse, Map.class);
 
         Course course = new Course();
@@ -99,6 +111,9 @@ public class CourseController {
         course.setLevel(level);
         course.setLanguage(lang);
         course.setIcon("school");
+
+        // Link to user
+        userRepository.findById(userId).ifPresent(course::setCreator);
 
         List<Module> modules = new ArrayList<>();
         List<Map<String, String>> modulesData = (List<Map<String, String>>) data.get("modules");
@@ -122,8 +137,11 @@ public class CourseController {
     }
 
     @GetMapping
-    public List<Course> getAllCourses() {
-        return courseRepository.findAll();
+    public List<Course> getUserCourses(@RequestParam(required = false) Long userId) {
+        if (userId != null) {
+            return courseRepository.findByCreator_Id(userId);
+        }
+        return new ArrayList<>(); // Or return all if admin? For now restricted.
     }
 
     // --- FIX: SAVING PROGRESS ---

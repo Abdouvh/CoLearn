@@ -139,6 +139,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> generateCourse(String topic, String level, String language) async {
     try {
+      if (currentUser == null) throw Exception("User not logged in");
       String url = baseUrl.replaceAll('/auth', '/courses/generate');
       print("✨ Generating course at: $url");
 
@@ -148,7 +149,8 @@ class ApiService {
         body: json.encode({
           'topic': topic,
           'level': level,
-          'language': language
+          'language': language,
+          'userId': currentUser!['id']
         }),
       );
 
@@ -164,7 +166,8 @@ class ApiService {
 
   static Future<List<dynamic>> getMyCourses() async {
     try {
-      String url = baseUrl.replaceAll('/auth', '/courses');
+      if (currentUser == null) return [];
+      String url = baseUrl.replaceAll('/auth', '/courses?userId=${currentUser!['id']}');
       print("🔍 Fetching courses from: $url");
 
       final response = await http.get(Uri.parse(url));

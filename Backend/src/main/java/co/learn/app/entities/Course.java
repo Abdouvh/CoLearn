@@ -23,4 +23,7 @@ public class Course {
     private List<Module> modules;
 
     private boolean isCompleted = false; // Tracks if the course is fully finished
+
+    @ManyToOne
+    private User creator;
 }
