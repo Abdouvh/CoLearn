@@ -365,50 +365,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }
 
+                // --- FILTER LOGIC ---
                 final courses = snapshot.data!;
-                return ListView.builder(
-                  itemCount: courses.length,
-                  itemBuilder: (context, index) {
-                    final course = courses[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 15),
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        color: darkFontGrey,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: whiteColor.withOpacity(0.1)),
-                      ),
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: lightBlue.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.school, color: lightBlue),
-                        ),
-                        title: Text(
-                          course['title'] ?? "Cours sans titre",
-                          style: const TextStyle(color: whiteColor, fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          "${course['level'] ?? 'Niveau inconnu'} • ${course['language']?.toUpperCase() ?? 'FR'}",
-                          style: TextStyle(color: fontGrey, fontSize: 12),
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios, color: fontGrey, size: 16),
+                final activeCourses = courses.where((c) => c['completed'] != true).toList();
+                final completedCourses = courses.where((c) => c['completed'] == true).toList();
 
-                        // --- ON TAP LOGIC (Refresh UI on Return) ---
-                        onTap: () async {
-                          // Wait for return
-                          await Get.to(() => CourseDetailsScreen(courseData: course));
-                          // Update List
-                          setState(() {});
-                        },
-                      ),
-                    );
-                  },
+                return ListView(
+                  children: [
+                    // --- SECTION: EN COURS ---
+                    if (activeCourses.isNotEmpty) ...[
+                      Text("En cours", style: TextStyle(color: whiteColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 10),
+                      ...activeCourses.map((course) => _buildCourseItem(course)).toList(),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // --- SECTION: TERMINÉS ---
+                    if (completedCourses.isNotEmpty) ...[
+                      Text("Terminés", style: TextStyle(color: Colors.greenAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 10),
+                      ...completedCourses.map((course) => _buildCourseItem(course, isCompleted: true)).toList(),
+                    ],
+                  ],
                 );
               },
             ),
@@ -418,9 +396,62 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Helper widget to avoid code duplication
+  Widget _buildCourseItem(dynamic course, {bool isCompleted = false}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: darkFontGrey,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isCompleted ? Colors.green.withOpacity(0.3) : whiteColor.withOpacity(0.1)),
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: isCompleted ? Colors.green.withOpacity(0.2) : lightBlue.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            isCompleted ? Icons.check_circle : Icons.school,
+            color: isCompleted ? Colors.green : lightBlue,
+          ),
+        ),
+        title: Text(
+          course['title'] ?? "Cours sans titre",
+          style: const TextStyle(color: whiteColor, fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          "${course['level'] ?? 'Niveau inconnu'} • ${course['language']?.toUpperCase() ?? 'FR'}",
+          style: TextStyle(color: fontGrey, fontSize: 12),
+        ),
+        trailing: Icon(Icons.arrow_forward_ios, color: fontGrey, size: 16),
+        onTap: () async {
+          // Wait for return
+          await Get.to(() => CourseDetailsScreen(courseData: course));
+          // Update List
+          setState(() {});
+        },
+      ),
+    );
+  }
+
   // --- PROFILE TAB ---
   Widget _buildProfileTab() {
-    return Padding(
+    // Get user data from ApiService
+    // Note: In a real app, use GetX or Provider for reactive state.
+    // For now, we rely on setState via the Future/Dialog return.
+    Map<String, dynamic>? user = ApiService.currentUser;
+    String name = user?['fullName'] ?? "Utilisateur CoLearn";
+    String email = user?['email'] ?? "user@colearn.com";
+    String role = user?['role'] ?? "Étudiant";
+    // Construct avatar letter
+    String letter = name.isNotEmpty ? name[0].toUpperCase() : "U";
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
@@ -437,25 +468,110 @@ class _HomeScreenState extends State<HomeScreen> {
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: lightBlue.withOpacity(0.2),
-                  child: Icon(Icons.person, color: lightBlue, size: 50),
+                  child: Text(letter, style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: lightBlue)),
                 ),
                 const SizedBox(height: 15),
-                Text("Utilisateur CoLearn", style: TextStyle(color: whiteColor, fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(name, style: TextStyle(color: whiteColor, fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
-                Text("user@colearn.com", style: TextStyle(color: fontGrey, fontSize: 16)),
+                Text(email, style: TextStyle(color: fontGrey, fontSize: 16)),
+                const SizedBox(height: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(5)),
+                  child: Text(role.toUpperCase(), style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                )
               ],
             ),
           ),
           const SizedBox(height: 30),
-          _buildProfileOption(icon: Icons.edit, title: "Modifier le profil", onTap: () {}),
+          _buildProfileOption(
+            icon: Icons.edit, 
+            title: "Modifier le profil", 
+            onTap: () {
+              _showEditProfileDialog(name);
+            }
+          ),
           _buildProfileOption(icon: Icons.settings, title: "Paramètres", onTap: () {}),
           _buildProfileOption(icon: Icons.help, title: "Aide", onTap: () {}),
           _buildProfileOption(
             icon: Icons.logout,
             title: "Se déconnecter",
             onTap: () {
+              // Clear session locally
+              ApiService.currentUser = null;
               Get.offAll(() => const LoginScreen());
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditProfileDialog(String currentName) {
+    final nameController = TextEditingController(text: currentName);
+    final passwordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: darkFontGrey,
+        title: const Text("Modifier le profil", style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "Nom complet",
+                labelStyle: TextStyle(color: Colors.grey),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: "Nouveau mot de passe (optionnel)",
+                labelStyle: TextStyle(color: Colors.grey),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text("Annuler", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (ApiService.currentUser == null) return;
+              
+              int userId = ApiService.currentUser!['id'];
+              String newName = nameController.text.trim();
+              String newPass = passwordController.text.trim();
+
+              if (newName.isEmpty) {
+                Get.snackbar("Erreur", "Le nom ne peut pas être vide", backgroundColor: Colors.red, colorText: Colors.white);
+                return;
+              }
+
+              // Call API
+              bool success = await ApiService.updateProfile(userId, newName, newPass);
+              
+              if (success) {
+                Get.back();
+                Get.snackbar("Succès", "Profil mis à jour", backgroundColor: Colors.green, colorText: Colors.white);
+                setState(() {}); // Refresh UI
+              } else {
+                Get.snackbar("Erreur", "Échec de la mise à jour", backgroundColor: Colors.red, colorText: Colors.white);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
+            child: const Text("Enregistrer"),
           ),
         ],
       ),

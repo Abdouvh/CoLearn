@@ -13,11 +13,14 @@ public class Course {
     private Long id;
 
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String language; // "fr" or "en"
-    private String level;    // "Débutant", etc.
-    private String icon;     // e.g. "code", "business"
+    private String level; // "Débutant", etc.
+    private String icon; // e.g. "code", "business"
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<Module> modules;
+
+    private boolean isCompleted = false; // Tracks if the course is fully finished
 }

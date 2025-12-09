@@ -13,6 +13,9 @@ class ApiService {
     }
   }
 
+  // --- CURRENT USER STORAGE ---
+  static Map<String, dynamic>? currentUser;
+
   // --- AUTHENTICATION ---
 
   static Future<Map<String, dynamic>> registerUser({
@@ -38,7 +41,9 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        var data = json.decode(response.body);
+        currentUser = data; // Store user
+        return data;
       } else {
         throw Exception('Erreur Inscription (${response.statusCode}): ${response.body}');
       }
@@ -62,7 +67,9 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        var data = json.decode(response.body);
+        currentUser = data; // Store logged in user
+        return data;
       } else {
         throw Exception('Erreur Connexion: Vérifiez vos identifiants');
       }
@@ -71,6 +78,37 @@ class ApiService {
     }
   }
 
+  static Future<bool> updateProfile(int id, String fullName, String password) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/users/$id');
+      print("✏️ Updating Profile ID: $id at $url");
+
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'fullName': fullName,
+          'password': password
+        }),
+      );
+
+      if (response.statusCode == 200) {
+         Map<String, dynamic> updatedUser = json.decode(utf8.decode(response.bodyBytes));
+         // Update local session
+         if (currentUser != null) {
+            currentUser!['fullName'] = updatedUser['fullName'] ?? fullName;
+            // Don't store password locally
+         }
+         return true;
+      } else {
+         return false;
+      }
+    } catch (e) {
+      print("Error updating profile: $e");
+      return false;
+    }
+  }
+  
   // --- ADMIN METHODS ---
 
   static Future<List<dynamic>> getAllUsers() async {
@@ -168,6 +206,26 @@ class ApiService {
       }
     } catch (e) {
       print("❌ EXCEPTION during save: $e");
+      return false;
+    }
+  }
+
+  static Future<bool> completeCourse(int courseId) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/courses/$courseId/complete');
+      print("🏆 Completing Course ID: $courseId at $url");
+
+      final response = await http.put(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        print("✅ SUCCESS: Course marked as completed.");
+        return true;
+      } else {
+        print("❌ ERROR: Failed to mark course complete.");
+        return false;
+      }
+    } catch (e) {
+      print("❌ EXCEPTION during course complete: $e");
       return false;
     }
   }
