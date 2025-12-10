@@ -1,10 +1,8 @@
 import 'package:colearn/consts/consts.dart';
 import 'package:colearn/services/api_service.dart';
-import 'package:colearn/views/course/course_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../course/course_details_screen.dart';
+import 'course_details_screen.dart';
 
 class CreateCourseScreen extends StatefulWidget {
   const CreateCourseScreen({super.key});

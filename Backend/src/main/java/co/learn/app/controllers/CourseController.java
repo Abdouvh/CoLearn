@@ -144,6 +144,54 @@ public class CourseController {
         return new ArrayList<>(); // Or return all if admin? For now restricted.
     }
 
+    // --- INSTRUCTOR ENDPOINTS ---
+
+    @GetMapping("/instructor")
+    public List<Course> getInstructorCourses() {
+        return courseRepository.findByCreator_Role("FORMATEUR");
+    }
+
+    @PostMapping("/manual")
+    public ResponseEntity<?> createManualCourse(@RequestBody Map<String, Object> payload) {
+        try {
+            String title = (String) payload.get("title");
+            String description = (String) payload.get("description");
+            String level = (String) payload.get("level");
+            String language = (String) payload.get("language");
+            String category = (String) payload.getOrDefault("category", "Général"); // Default if missing
+            Long userId = ((Number) payload.get("userId")).longValue();
+
+            Course course = new Course();
+            course.setTitle(title);
+            course.setDescription(description);
+            course.setLevel(level);
+            course.setLanguage(language);
+            course.setCategory(category);
+            course.setIcon("school");
+
+            userRepository.findById(userId).ifPresent(course::setCreator);
+
+            List<Module> modules = new ArrayList<>();
+            List<Map<String, String>> modulesData = (List<Map<String, String>>) payload.get("modules");
+
+            if (modulesData != null) {
+                for (int i = 0; i < modulesData.size(); i++) {
+                    Map<String, String> mData = modulesData.get(i);
+                    Module module = new Module();
+                    module.setTitle(mData.get("title"));
+                    module.setContent(mData.get("content"));
+                    module.setLocked(i != 0); // Lock all except first
+                    modules.add(module);
+                }
+            }
+            course.setModules(modules);
+
+            return ResponseEntity.ok(courseRepository.save(course));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error creating course: " + e.getMessage());
+        }
+    }
+
     // --- FIX: SAVING PROGRESS ---
     @PutMapping("/modules/{id}/unlock")
     @Transactional // <--- CRITICAL: Forces DB to save the change
@@ -168,5 +216,65 @@ public class CourseController {
             courseRepository.save(course);
             return ResponseEntity.ok().build();
         }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // --- ENROLLMENT (CLONING) ---
+    @PostMapping("/{id}/enroll")
+    @Transactional
+    public ResponseEntity<?> enrollCourse(@PathVariable Long id, @RequestBody Map<String, Long> payload) {
+        Long userId = payload.get("userId");
+        if (userId == null)
+            return ResponseEntity.badRequest().body("userId required");
+
+        return courseRepository.findById(id).map(originalCourse -> {
+            // 1. Clone Course
+            Course newCourse = new Course();
+            newCourse.setTitle(originalCourse.getTitle());
+            newCourse.setDescription(originalCourse.getDescription());
+            newCourse.setLevel(originalCourse.getLevel());
+            newCourse.setLanguage(originalCourse.getLanguage()); // Fixed: was losing language
+            newCourse.setCategory(originalCourse.getCategory());
+            newCourse.setIcon(originalCourse.getIcon());
+            newCourse.setCompleted(false); // Reset completion
+
+            // 2. Assign to Student
+            userRepository.findById(userId).ifPresent(newCourse::setCreator);
+
+            // 3. Clone Modules
+            List<Module> newModules = new ArrayList<>();
+            List<Module> originalModules = originalCourse.getModules();
+
+            if (originalModules != null) {
+                for (int i = 0; i < originalModules.size(); i++) {
+                    Module originalModule = originalModules.get(i);
+                    Module newModule = new Module();
+                    newModule.setTitle(originalModule.getTitle());
+                    newModule.setContent(originalModule.getContent());
+                    newModule.setLocked(i != 0); // Reset progress: Lock all except first
+                    newModules.add(newModule);
+                }
+            }
+            newCourse.setModules(newModules);
+
+            // 4. Save and Return
+            Course savedCourse = courseRepository.save(newCourse);
+            return ResponseEntity.ok(savedCourse);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // --- DELETE COURSE ---
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
+        return courseRepository.findById(id).map(course -> {
+            courseRepository.delete(course); // Cascades to modules due to CascadeType.ALL
+            return ResponseEntity.ok().build();
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // --- SEARCH ---
+    @GetMapping("/search")
+    public List<Course> searchCourses(@RequestParam String query) {
+        return courseRepository.findByTitleContainingIgnoreCase(query);
     }
 }

@@ -18,6 +18,7 @@ public class Course {
     private String language; // "fr" or "en"
     private String level; // "Débutant", etc.
     private String icon; // e.g. "code", "business"
+    private String category; // e.g. "Data Science", "Design"
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<Module> modules;

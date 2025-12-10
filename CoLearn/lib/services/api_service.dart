@@ -392,4 +392,100 @@ class ApiService {
       throw Exception('Erreur de connexion: $e');
     }
   }
+  // --- INSTRUCTOR FEATURES ---
+
+  static Future<List<dynamic>> getInstructorCourses() async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/courses/instructor');
+      final response = await http.get(Uri.parse(url));
+      
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching instructor courses: $e");
+      return [];
+    }
+  }
+
+  static Future<bool> createManualCourse(Map<String, dynamic> courseData) async {
+    try {
+      if (currentUser == null) return false;
+      
+      String url = baseUrl.replaceAll('/auth', '/courses/manual');
+      
+      // Inject userId
+      courseData['userId'] = currentUser!['id'];
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(courseData),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error creating manual course: $e");
+      return false;
+    }
+  }
+
+  // --- ENROLLMENT ---
+  static Future<Map<String, dynamic>?> enrollCourse(int courseId) async {
+    try {
+      if (currentUser == null) return null;
+      
+      String url = baseUrl.replaceAll('/auth', '/courses/$courseId/enroll');
+      print("🎓 Enrolling in Course ID: $courseId");
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'userId': currentUser!['id']}),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        print("Failed to enroll: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      print("Error enrolling in course: $e");
+      return null;
+    }
+  }
+
+  // --- DELETE COURSE ---
+  static Future<bool> deleteCourse(int courseId) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/courses/$courseId');
+      final response = await http.delete(Uri.parse(url));
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error deleting course: $e");
+      return false;
+    }
+  }
+
+  // --- SEARCH COURSES ---
+  static Future<List<dynamic>> searchCourses(String query) async {
+    try {
+      if (query.isEmpty) return [];
+      String url = baseUrl.replaceAll('/auth', '/courses/search?query=$query');
+      print("Searching: $url");
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        String body = utf8.decode(response.bodyBytes);
+        return json.decode(body);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error searching courses: $e");
+      return [];
+    }
+  }
 }
