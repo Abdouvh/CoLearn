@@ -488,4 +488,94 @@ class ApiService {
       return [];
     }
   }
+
+  // --- COMMENTS ---
+  static Future<List<dynamic>> getComments(int courseId) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/comments/course/$courseId');
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+         return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching comments: $e");
+      return [];
+    }
+  }
+
+  static Future<bool> addComment(int courseId, String content) async {
+    try {
+      if (currentUser == null) return false;
+      String url = baseUrl.replaceAll('/auth', '/comments/course/$courseId');
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'userId': currentUser!['id'],
+          'content': content
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error adding comment: $e");
+      return false;
+    }
+  }
+
+  // --- MESSAGING ---
+  static Future<List<dynamic>> getConversation(int otherUserId) async {
+    try {
+      if (currentUser == null) return [];
+      String url = baseUrl.replaceAll('/auth', '/messages/conversation?user1=${currentUser!['id']}&user2=$otherUserId');
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+         return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching messages: $e");
+      return [];
+    }
+  }
+
+  static Future<bool> sendDirectMessage(int receiverId, String content) async {
+    try {
+      if (currentUser == null) return false;
+      String url = baseUrl.replaceAll('/auth', '/messages');
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'senderId': currentUser!['id'],
+          'receiverId': receiverId,
+          'content': content
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error sending message: $e");
+      return false;
+    }
+  }
+
+  static Future<List<dynamic>> getInbox() async {
+    try {
+      if (currentUser == null) return [];
+      String url = baseUrl.replaceAll('/auth', '/messages/inbox/${currentUser!['id']}');
+      print("📬 GET Inbox: $url");
+      final response = await http.get(Uri.parse(url));
+      print("📬 Inbox Status: ${response.statusCode}");
+      if (response.statusCode == 200) {
+         var data = json.decode(utf8.decode(response.bodyBytes));
+         print("📬 Inbox Data Count: ${(data as List).length}");
+         return data;
+      }
+      print("📬 Failed Inbox Body: ${response.body}");
+      return [];
+    } catch (e) {
+      print("❌ Error fetching inbox: $e");
+      return [];
+    }
+  }
 }

@@ -231,14 +231,22 @@ public class CourseController {
             Course newCourse = new Course();
             newCourse.setTitle(originalCourse.getTitle());
             newCourse.setDescription(originalCourse.getDescription());
+            newCourse.setLanguage(originalCourse.getLanguage());
             newCourse.setLevel(originalCourse.getLevel());
-            newCourse.setLanguage(originalCourse.getLanguage()); // Fixed: was losing language
-            newCourse.setCategory(originalCourse.getCategory());
             newCourse.setIcon(originalCourse.getIcon());
+            newCourse.setCategory(originalCourse.getCategory());
             newCourse.setCompleted(false); // Reset completion
 
             // 2. Assign to Student
+            // The student "owns" this progress copy
             userRepository.findById(userId).ifPresent(newCourse::setCreator);
+
+            // PRESERVE ORIGINAL FORMATEUR (fixes messaging issue)
+            if (originalCourse.getOriginalCreator() != null) {
+                newCourse.setOriginalCreator(originalCourse.getOriginalCreator());
+            } else {
+                newCourse.setOriginalCreator(originalCourse.getCreator());
+            }
 
             // 3. Clone Modules
             List<Module> newModules = new ArrayList<>();

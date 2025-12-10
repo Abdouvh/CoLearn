@@ -14,6 +14,8 @@ import 'package:colearn/views/course/create_manual_course_screen.dart';
 
 import '../course/course_details_screen.dart';
 
+import 'package:colearn/views/home/inbox_screen.dart'; // Add import
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -48,8 +50,10 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: "Mes Groupes",
           ),
           IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.notifications_outlined, color: whiteColor),
+            onPressed: () {
+               Get.to(() => const InboxScreen());
+            }, 
+            icon: Icon(Icons.mail_outline, color: whiteColor),
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.person_outline, color: whiteColor),
@@ -382,7 +386,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.only(bottom: 15),
                       child: _buildCourseCard(
                         title: course['title'] ?? "Cours",
-                        instructor: "Formateur Prof.", 
+                        instructor: (course['creator'] != null && course['creator']['fullName'] != null) 
+                            ? course['creator']['fullName'] 
+                            : "Formateur Inconnu", 
                         rating: 4.8,
                         students: 100, 
                         price: "Gratuit",

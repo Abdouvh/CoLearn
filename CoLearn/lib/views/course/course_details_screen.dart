@@ -1,5 +1,7 @@
 import 'package:colearn/consts/consts.dart';
 import 'package:colearn/services/api_service.dart'; // REQUIRED IMPORT
+import 'package:colearn/views/home/groups_screen.dart';
+import 'package:colearn/views/home/direct_chat_screen.dart'; // NEW IMPORT
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -20,6 +22,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
   // Progress State
   double progressValue = 0.0;
   bool isCourseCompleted = false;
+  bool showDiscussion = false; // Toggle Tab View
 
   @override
   void initState() {
@@ -194,17 +197,79 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
             const Divider(color: Colors.grey),
             const SizedBox(height: 10),
 
-            // --- MODULE LIST ---
-            ListView.builder(
+            // --- TOGGLE TABS ---
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 20),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(color: Colors.grey[900], borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                children: [
+                   Expanded(child: _buildTabButton("Contenu", !showDiscussion, () => setState(() => showDiscussion = false))),
+                   Expanded(child: _buildTabButton("Discussion", showDiscussion, () => setState(() => showDiscussion = true))),
+                ],
+              ),
+            ),
+
+            if (showDiscussion) 
+               _buildDiscussionSection() 
+            else 
+               _buildModuleList(),
+               
+            const SizedBox(height: 30),
+            
+             // --- CONTACT INSTRUCTOR ---
+            if (!showDiscussion)
+              Center(
+                 child: TextButton.icon(
+                   onPressed: () {
+                     // PRIORITIZE ORIGINAL CREATOR (INSTRUCTOR) IF ENROLLED
+                     var targetUser = widget.courseData['originalCreator'] ?? widget.courseData['creator'];
+                     
+                     if (targetUser != null) {
+                         Get.to(() => DirectChatScreen(
+                           otherUserId: targetUser['id'],
+                           otherUserName: targetUser['fullName']
+                         ));
+                     } else {
+                         Get.snackbar("Info", "Contact indisponible", colorText: Colors.white);
+                     }
+                   },
+                   icon: const Icon(Icons.mail_outline, color: lightBlue),
+                   label: const Text("Contacter le formateur", style: TextStyle(color: lightBlue)),
+                 ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabButton(String title, bool isActive, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive ? lightBlue : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          title, 
+          textAlign: TextAlign.center, 
+          style: TextStyle(color: isActive ? Colors.white : Colors.grey, fontWeight: FontWeight.bold)
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModuleList() {
+    return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: modules.length,
               itemBuilder: (context, index) {
                 final module = modules[index];
                 bool isLocked = module['locked'] ?? false;
-
-                // Determine if this specific module is "Done"
-                // It is done if the NEXT one is unlocked, or if course is complete
                 bool isDone = isCourseCompleted || (index + 1 < modules.length && modules[index+1]['locked'] == false);
 
                 return Container(
@@ -246,12 +311,78 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                   ),
                 );
               },
-            ),
-          ],
+            );
+  }
+
+  // --- DISCUSSION SECTION ---
+  final TextEditingController _commentController = TextEditingController();
+
+  Widget _buildDiscussionSection() {
+    return Column(
+      children: [
+        // COMMENT LIST
+        FutureBuilder<List<dynamic>>(
+          future: ApiService.getComments(widget.courseData['id']),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+            if (!snapshot.hasData || snapshot.data!.isEmpty) return const Text("Aucune discussion pour l'instant.", style: TextStyle(color: Colors.grey));
+            
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                var comment = snapshot.data![index];
+                return ListTile(
+                   leading: CircleAvatar(backgroundColor: Colors.grey[800], child: Text(comment['author']['fullName'] != null ? comment['author']['fullName'][0] : "?")),
+                   title: Text(comment['author']['fullName'] ?? "Anonyme", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                   subtitle: Text(comment['content'], style: TextStyle(color: Colors.grey[300])),
+                   contentPadding: EdgeInsets.zero,
+                );
+              },
+            );
+          },
         ),
-      ),
+        const SizedBox(height: 20),
+        
+        // INPUT
+        Row(
+          children: [
+             Expanded(
+               child: TextField(
+                 controller: _commentController,
+                 style: const TextStyle(color: Colors.white),
+                 decoration: InputDecoration(
+                   hintText: "Poser une question...",
+                   hintStyle: TextStyle(color: Colors.grey[600]),
+                   filled: true,
+                   fillColor: Colors.grey[900],
+                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                   contentPadding: const EdgeInsets.symmetric(horizontal: 20)
+                 ),
+               ),
+             ),
+             const SizedBox(width: 10),
+             IconButton(
+               onPressed: () async {
+                 if (_commentController.text.trim().isNotEmpty) {
+                    bool success = await ApiService.addComment(widget.courseData['id'], _commentController.text);
+                    if (success) {
+                       _commentController.clear();
+                       setState(() {}); // Refresh comments
+                       Get.snackbar("Succès", "Message envoyé", backgroundColor: Colors.green, colorText: Colors.white);
+                    }
+                 }
+               }, 
+               icon: const Icon(Icons.send, color: lightBlue)
+             )
+          ],
+        )
+      ],
     );
   }
+
+
 
   void _showLessonDialog(BuildContext context, Map<String, dynamic> module, int index) {
     String title = module['title'] ?? "";

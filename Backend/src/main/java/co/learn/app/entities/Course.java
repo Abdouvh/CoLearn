@@ -27,4 +27,7 @@ public class Course {
 
     @ManyToOne
     private User creator;
+
+    @ManyToOne
+    private User originalCreator; // The actual professor, preserved during cloning
 }
