@@ -226,7 +226,19 @@ public class CourseController {
         if (userId == null)
             return ResponseEntity.badRequest().body("userId required");
 
+        // CHECK IF ALREADY ENROLLED
+        Course existingEnrollment = courseRepository.findByCreator_IdAndOriginalCourseId(userId, id);
+        if (existingEnrollment != null) {
+            System.out
+                    .println("ℹ️ User " + userId + " already enrolled in Course " + id + ". Returning existing copy.");
+            return ResponseEntity.ok(existingEnrollment);
+        }
+
         return courseRepository.findById(id).map(originalCourse -> {
+            // 0. Update Stats on Original Course
+            originalCourse.setEnrolledCount(originalCourse.getEnrolledCount() + 1);
+            courseRepository.save(originalCourse);
+
             // 1. Clone Course
             Course newCourse = new Course();
             newCourse.setTitle(originalCourse.getTitle());
@@ -236,6 +248,9 @@ public class CourseController {
             newCourse.setIcon(originalCourse.getIcon());
             newCourse.setCategory(originalCourse.getCategory());
             newCourse.setCompleted(false); // Reset completion
+
+            // Link to parent for aggregation
+            newCourse.setOriginalCourseId(originalCourse.getId());
 
             // 2. Assign to Student
             // The student "owns" this progress copy
@@ -267,6 +282,39 @@ public class CourseController {
             // 4. Save and Return
             Course savedCourse = courseRepository.save(newCourse);
             return ResponseEntity.ok(savedCourse);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // --- RATING ---
+    @PostMapping("/{id}/rate")
+    @Transactional
+    public ResponseEntity<?> rateCourse(@PathVariable Long id, @RequestBody Map<String, Double> payload) {
+        Double rating = payload.get("rating");
+        if (rating == null || rating < 0 || rating > 5) {
+            return ResponseEntity.badRequest().body("Invalid rating");
+        }
+
+        return courseRepository.findById(id).map(course -> {
+            // Identify the "Parent" course to rate
+            Course targetCourse = course;
+            if (course.getOriginalCourseId() != null) {
+                targetCourse = courseRepository.findById(course.getOriginalCourseId()).orElse(course);
+            }
+
+            // Update Stats
+            // (Average * Count + New) / (Count + 1)
+            double currentSum = targetCourse.getAverageRating() * targetCourse.getRatingCount();
+            double newSum = currentSum + rating;
+            int newCount = targetCourse.getRatingCount() + 1;
+
+            double newAverage = newSum / newCount;
+
+            targetCourse.setAverageRating(newAverage);
+            targetCourse.setRatingCount(newCount);
+
+            courseRepository.save(targetCourse);
+            // Return updated average
+            return ResponseEntity.ok(Map.of("newAverage", newAverage));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 

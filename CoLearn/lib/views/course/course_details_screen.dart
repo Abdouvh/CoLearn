@@ -91,8 +91,62 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
         progressValue = 1.0;
         isCourseCompleted = true;
       });
-      _showCompletionCelebration();
+      
+      // SHOW RATING FIRST, THEN CERTIFICATE
+      _showRatingDialog();
     }
+  }
+
+  void _showRatingDialog() {
+    double _localRating = 5.0;
+    
+    Get.defaultDialog(
+      title: "Notez ce cours ⭐",
+      content: StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Column(
+            children: [
+              const Text("Comment avez-vous trouvé ce cours ?", textAlign: TextAlign.center),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    onPressed: () {
+                      setDialogState(() {
+                        _localRating = index + 1.0;
+                      });
+                    },
+                    icon: Icon(
+                      index < _localRating ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 30,
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 10),
+              Text("${_localRating.toInt()}/5", style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          );
+        }
+      ),
+      confirm: ElevatedButton(
+        style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
+        onPressed: () async {
+          Get.back(); // Close Rating Dialog
+          
+          // Send Rating
+          await ApiService.rateCourse(widget.courseData['id'], _localRating);
+          Get.snackbar("Merci !", "Votre avis a été enregistré.", backgroundColor: Colors.green, colorText: Colors.white);
+          
+          // NOW Show Certificate
+          _showCompletionCelebration();
+        },
+        child: const Text("Envoyer", style: TextStyle(color: Colors.white)),
+      ),
+      barrierDismissible: false,
+    );
   }
 
   void _showCompletionCelebration() {

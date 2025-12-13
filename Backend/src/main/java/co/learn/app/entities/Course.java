@@ -30,4 +30,11 @@ public class Course {
 
     @ManyToOne
     private User originalCreator; // The actual professor, preserved during cloning
+
+    // STATS
+    private int enrolledCount = 0;
+    private double averageRating = 0.0;
+    private int ratingCount = 0;
+
+    private Long originalCourseId; // Link to the parent course for aggregating stats
 }

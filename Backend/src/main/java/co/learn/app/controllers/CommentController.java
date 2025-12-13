@@ -30,7 +30,14 @@ public class CommentController {
 
     @GetMapping("/course/{courseId}")
     public List<Comment> getCourseComments(@PathVariable Long courseId) {
-        return commentRepository.findByCourse_IdOrderByCreatedAtDesc(courseId);
+        // Resolve to Original Course ID if this is a clone
+        Long targetId = courseId;
+        Course course = courseRepository.findById(courseId).orElse(null);
+        if (course != null && course.getOriginalCourseId() != null) {
+            targetId = course.getOriginalCourseId();
+        }
+
+        return commentRepository.findByCourse_IdOrderByCreatedAtDesc(targetId);
     }
 
     @PostMapping("/course/{courseId}")
@@ -47,6 +54,12 @@ public class CommentController {
 
         if (course == null || user == null) {
             return ResponseEntity.badRequest().body("Course or User not found");
+        }
+
+        // REDIRECT TO ORIGINAL COURSE (Aggregated Comments)
+        if (course.getOriginalCourseId() != null) {
+            Long originalId = course.getOriginalCourseId();
+            course = courseRepository.findById(originalId).orElse(course);
         }
 
         Comment comment = new Comment();

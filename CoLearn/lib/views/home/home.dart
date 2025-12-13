@@ -389,8 +389,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         instructor: (course['creator'] != null && course['creator']['fullName'] != null) 
                             ? course['creator']['fullName'] 
                             : "Formateur Inconnu", 
-                        rating: 4.8,
-                        students: 100, 
+                        // REAL STATS
+                        rating: (course['averageRating'] != null && course['averageRating'] > 0) 
+                            ? double.parse(course['averageRating'].toString()) 
+                            : 5.0, // Default to 5.0 if new
+                        students: course['enrolledCount'] ?? 0, 
                         price: "Gratuit",
                         image: "assets/images/course1.jpg", 
                         onTap: () async {
@@ -627,7 +630,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (activeCourses.isNotEmpty) ...[
                       Text("En cours", style: TextStyle(color: whiteColor, fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
-                      ...activeCourses.map((course) => _buildCourseItem(course)).toList(),
+                      ...activeCourses.map((course) => _buildCourseItem(
+                        course, 
+                        onDelete: () {
+                           // UNENROLL / DELETE ACTION
+                           Get.defaultDialog(
+                             title: "Désinscription",
+                             middleText: "Voulez-vous vraiment retirer ce cours de votre liste ?",
+                             confirm: ElevatedButton(
+                               onPressed: () async {
+                                 Get.back(); // Close
+                                 bool success = await ApiService.deleteCourse(course['id']);
+                                 if (success) {
+                                    setState(() {}); // Refresh list
+                                    Get.snackbar("Succès", "Cours retiré", backgroundColor: Colors.green, colorText: Colors.white);
+                                 } else {
+                                    Get.snackbar("Erreur", "Impossible de supprimer", backgroundColor: Colors.red, colorText: Colors.white);
+                                 }
+                               },
+                               style: ElevatedButton.styleFrom(backgroundColor: Colors.red), 
+                               child: const Text("Oui, retirer", style: TextStyle(color: Colors.white))
+                             ),
+                             cancel: TextButton(onPressed: () => Get.back(), child: const Text("Annuler"))
+                           );
+                        }
+                      )).toList(),
                       const SizedBox(height: 20),
                     ],
 
@@ -635,7 +662,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (completedCourses.isNotEmpty) ...[
                       Text("Terminés", style: TextStyle(color: Colors.greenAccent, fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
-                      ...completedCourses.map((course) => _buildCourseItem(course, isCompleted: true)).toList(),
+                      ...completedCourses.map((course) => _buildCourseItem(
+                        course, 
+                        isCompleted: true,
+                        onDelete: () {
+                           // DELETE COMPLETED COURSE
+                           Get.defaultDialog(
+                             title: "Suppression",
+                             middleText: "Voulez-vous supprimer ce cours terminé ?",
+                             confirm: ElevatedButton(
+                               onPressed: () async {
+                                 Get.back();
+                                 bool success = await ApiService.deleteCourse(course['id']);
+                                 if (success) {
+                                    setState(() {});
+                                    Get.snackbar("Succès", "Cours supprimé", backgroundColor: Colors.green, colorText: Colors.white);
+                                 }
+                               },
+                               style: ElevatedButton.styleFrom(backgroundColor: Colors.red), 
+                               child: const Text("Supprimer", style: TextStyle(color: Colors.white))
+                             ),
+                             cancel: TextButton(onPressed: () => Get.back(), child: const Text("Annuler"))
+                           );
+                        }
+                      )).toList(),
                     ],
                   ],
                 );

@@ -10,4 +10,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByCreator_Role(String role);
 
     List<Course> findByTitleContainingIgnoreCase(String title);
+
+    Course findByCreator_IdAndOriginalCourseId(Long userId, Long originalCourseId);
 }

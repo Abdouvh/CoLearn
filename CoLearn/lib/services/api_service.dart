@@ -578,4 +578,26 @@ class ApiService {
       return [];
     }
   }
+
+  // --- RATING ---
+  static Future<double?> rateCourse(int courseId, double rating) async {
+    try {
+      if (currentUser == null) return null;
+      String url = baseUrl.replaceAll('/auth', '/courses/$courseId/rate');
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'rating': rating}),
+      );
+
+      if (response.statusCode == 200) {
+         var data = json.decode(response.body);
+         return data['newAverage'];
+      }
+      return null;
+    } catch (e) {
+      print("Error rating course: $e");
+      return null;
+    }
+  }
 }
