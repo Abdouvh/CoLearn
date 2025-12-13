@@ -41,33 +41,105 @@ public class User {
 
     // --- MANUAL GETTERS AND SETTERS ---
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getFullName() {
+        return fullName;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getExpertiseLevel() { return expertiseLevel; }
-    public void setExpertiseLevel(String expertiseLevel) { this.expertiseLevel = expertiseLevel; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getLearningStyle() { return learningStyle; }
-    public void setLearningStyle(String learningStyle) { this.learningStyle = learningStyle; }
+    public String getPassword() {
+        return password;
+    }
 
-    public String getProvider() { return provider; }
-    public void setProvider(String provider) { this.provider = provider; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public String getProviderId() { return providerId; }
-    public void setProviderId(String providerId) { this.providerId = providerId; }
+    public String getRole() {
+        return role;
+    }
 
-    public String getAvatarUrl() { return avatarUrl; }
-    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getExpertiseLevel() {
+        return expertiseLevel;
+    }
+
+    public void setExpertiseLevel(String expertiseLevel) {
+        this.expertiseLevel = expertiseLevel;
+    }
+
+    public String getLearningStyle() {
+        return learningStyle;
+    }
+
+    public void setLearningStyle(String learningStyle) {
+        this.learningStyle = learningStyle;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    // --- GAMIFICATION ---
+    private int xp = 0;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private java.util.Set<String> badges = new java.util.HashSet<>();
+
+    public int getXp() {
+        return xp;
+    }
+
+    public void setXp(int xp) {
+        this.xp = xp;
+    }
+
+    public java.util.Set<String> getBadges() {
+        return badges;
+    }
+
+    public void setBadges(java.util.Set<String> badges) {
+        this.badges = badges;
+    }
 }

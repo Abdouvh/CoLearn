@@ -597,7 +597,22 @@ class ApiService {
       return null;
     } catch (e) {
       print("Error rating course: $e");
-      return null;
+    }
+  }
+
+  // --- GAMIFICATION / LEADERBOARD ---
+  static Future<List<dynamic>> getLeaderboard() async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/leaderboard');
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error fetching leaderboard: $e");
+      return [];
     }
   }
 }

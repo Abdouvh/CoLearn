@@ -14,6 +14,7 @@ import 'package:colearn/views/course/create_manual_course_screen.dart';
 
 import '../course/course_details_screen.dart';
 
+import 'package:colearn/views/profile/leaderboard_screen.dart'; // NEW IMPORT
 import 'package:colearn/views/home/inbox_screen.dart'; // Add import
 
 class HomeScreen extends StatefulWidget {
@@ -59,7 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.person_outline, color: whiteColor),
             color: darkFontGrey,
             onSelected: (value) {
-              if (value == 'profile') {
+              if (value == 'leaderboard') {
+                Get.to(() => const LeaderboardScreen());
+              } else if (value == 'profile') {
                 setState(() {
                   _currentIndex = 3; // Switch to Profile tab
                 });
@@ -70,6 +73,16 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             itemBuilder: (BuildContext context) {
               return [
+                const PopupMenuItem<String>(
+                  value: 'leaderboard', // NEW ITEM
+                  child: Row(
+                    children: [
+                      Icon(Icons.emoji_events, color: Colors.amber),
+                      SizedBox(width: 10),
+                      Text("Classement 🏆", style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem<String>(
                   value: 'profile',
                   child: Row(

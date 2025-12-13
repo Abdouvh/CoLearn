@@ -111,6 +111,7 @@ public class CourseController {
         course.setLevel(level);
         course.setLanguage(lang);
         course.setIcon("school");
+        course.setAiGenerated(true);
 
         // Link to user
         userRepository.findById(userId).ifPresent(course::setCreator);
@@ -214,6 +215,34 @@ public class CourseController {
         return courseRepository.findById(id).map(course -> {
             course.setCompleted(true);
             courseRepository.save(course);
+
+            // --- GAMIFICATION REWARD ---
+            // --- GAMIFICATION REWARD ---
+            // Only award XP/Badges if NOT AI generated
+            if (!course.isAiGenerated()) {
+                co.learn.app.entities.User student = course.getCreator();
+                if (student != null) {
+                    // Award XP
+                    student.setXp(student.getXp() + 500);
+                    System.out.println("   +500 XP for User " + student.getId());
+
+                    // Award Badge: "First Course"
+                    // Check if this is their first completed course
+                    long completedCount = courseRepository.findByCreator_Id(student.getId()).stream()
+                            .filter(Course::isCompleted).count();
+                    if (completedCount == 1) { // 1 means this is the first one (since we just set it true)
+                        student.getBadges().add("Premier Cours 🏆");
+                        System.out.println("   +Badge Awarded: Premier Cours 🏆");
+                    }
+
+                    userRepository.save(student);
+                }
+            } else {
+                System.out.println("   --- AI Course: No XP/Badges awarded ---");
+            }
+            // ---------------------------
+            // ---------------------------
+
             return ResponseEntity.ok().build();
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }

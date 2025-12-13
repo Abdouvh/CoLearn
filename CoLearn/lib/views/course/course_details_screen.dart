@@ -2,6 +2,7 @@ import 'package:colearn/consts/consts.dart';
 import 'package:colearn/services/api_service.dart'; // REQUIRED IMPORT
 import 'package:colearn/views/home/groups_screen.dart';
 import 'package:colearn/views/home/direct_chat_screen.dart'; // NEW IMPORT
+import 'package:colearn/services/certificate_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -92,8 +93,16 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
         isCourseCompleted = true;
       });
       
-      // SHOW RATING FIRST, THEN CERTIFICATE
-      _showRatingDialog();
+      // CHECK IF AI GENERATED
+      bool isAi = widget.courseData['aiGenerated'] ?? false;
+      
+      if (!isAi) {
+          // SHOW RATING FIRST, THEN CERTIFICATE
+          _showRatingDialog();
+      } else {
+          // Just show simple completion message for AI courses
+          Get.snackbar("Bravo !", "Vous avez terminé ce cours généré par IA.", backgroundColor: Colors.green, colorText: Colors.white);
+      }
     }
   }
 
@@ -164,7 +173,14 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => Get.back(),
+            onPressed: () async {
+               Get.back();
+               await CertificateService.generateCertificate(
+                  studentName: ApiService.currentUser != null ? (ApiService.currentUser!['fullName'] ?? "Apprenant") : "Apprenant",
+                  courseTitle: title,
+                  date: DateTime.now().toString().split(' ')[0],
+               );
+            },
             style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
             child: const Text("Réclamer mon Certificat", style: TextStyle(color: Colors.white)),
           )
