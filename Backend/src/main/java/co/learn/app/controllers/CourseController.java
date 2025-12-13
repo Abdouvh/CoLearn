@@ -331,6 +331,6 @@ public class CourseController {
     // --- SEARCH ---
     @GetMapping("/search")
     public List<Course> searchCourses(@RequestParam String query) {
-        return courseRepository.findByTitleContainingIgnoreCase(query);
+        return courseRepository.findByTitleContainingIgnoreCaseAndOriginalCourseIdIsNull(query);
     }
 }
