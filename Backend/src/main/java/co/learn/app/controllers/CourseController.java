@@ -181,6 +181,7 @@ public class CourseController {
                     Module module = new Module();
                     module.setTitle(mData.get("title"));
                     module.setContent(mData.get("content"));
+                    module.setVideoUrl(mData.get("videoUrl")); // FIX: Map videoUrl
                     module.setLocked(i != 0); // Lock all except first
                     modules.add(module);
                 }

@@ -12,6 +12,8 @@ public class Module {
 
     private String title;
 
+    private String videoUrl; // Youtube Link
+
     @Column(length = 5000) // Allow long text
     private String content; // The lesson text
 

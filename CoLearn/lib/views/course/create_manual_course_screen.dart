@@ -29,6 +29,7 @@ class _CreateManualCourseScreenState extends State<CreateManualCourseScreen> {
   void _addModule() {
     TextEditingController titleCtrl = TextEditingController();
     TextEditingController contentCtrl = TextEditingController();
+    TextEditingController videoCtrl = TextEditingController(); // NEW
 
     Get.defaultDialog(
       title: "Ajouter un Module",
@@ -54,6 +55,16 @@ class _CreateManualCourseScreenState extends State<CreateManualCourseScreen> {
               hintStyle: TextStyle(color: Colors.grey),
             ),
           ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: videoCtrl,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              hintText: "Lien YouTube (Oprionnel)",
+              hintStyle: TextStyle(color: Colors.grey),
+              prefixIcon: Icon(Icons.video_library, color: Colors.red),
+            ),
+          ),
         ],
       ),
       textConfirm: "Ajouter",
@@ -65,6 +76,7 @@ class _CreateManualCourseScreenState extends State<CreateManualCourseScreen> {
             modules.add({
               "title": titleCtrl.text,
               "content": contentCtrl.text,
+              "videoUrl": videoCtrl.text // Save it
             });
           });
           Get.back();

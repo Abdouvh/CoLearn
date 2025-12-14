@@ -4,7 +4,12 @@ import 'package:colearn/views/home/groups_screen.dart';
 import 'package:colearn/views/home/direct_chat_screen.dart'; // NEW IMPORT
 import 'package:colearn/services/certificate_service.dart';
 import 'package:flutter/material.dart';
+import 'package:colearn/services/certificate_service.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:webview_flutter/webview_flutter.dart'; // NEW
+import 'package:youtube_player_flutter/youtube_player_flutter.dart'; 
+import 'package:url_launcher/url_launcher.dart';
 
 class CourseDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> courseData;
@@ -457,14 +462,66 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
   void _showLessonDialog(BuildContext context, Map<String, dynamic> module, int index) {
     String title = module['title'] ?? "";
     String content = module['content'] ?? "";
+    String? videoUrl = module['videoUrl'];
 
     // CHECK IF THIS IS A QUIZ
-    bool isQuiz = title.toLowerCase().contains("quiz") || title.toLowerCase().contains("test");
+    // CHECK IF THIS IS A QUIZ
+    // Fix: "test" was too broad. Now checks if title STARTS with "Quiz" or "Test" (case insensitive)
+    bool isQuiz = title.toLowerCase().trim().startsWith("quiz");
 
     if (isQuiz) {
       _showQuizDialog(context, title, content, index);
     } else {
-      // STANDARD LESSON DIALOG
+      // WEB & MOBILE: Use YoutubePlayerController from youtube_player_iframe package
+      // This works on both Web (via IFrame) and Mobile (via WebView)
+      
+      // HYBRID STRATEGY:
+      // Web -> WebView (Iframe)
+      // Mobile -> YoutubePlayer (Native)
+      bool isWeb = GetPlatform.isWeb;
+
+      // MOBILE CONTROLLER
+      YoutubePlayerController? _mobileController;
+      
+      // WEB CONTROLLER
+      WebViewController? _webController;
+
+      if (videoUrl != null && videoUrl.isNotEmpty) {
+          String? videoId;
+          try {
+             videoId = YoutubePlayer.convertUrlToId(videoUrl);
+          } catch (e) {
+             RegExp regExp = RegExp(r"((?<=(v|V)/)|(?<=be/)|(?<=(\?|\&)v=)|(?<=embed/))([\w-]+)");
+             Match? match = regExp.firstMatch(videoUrl!);
+             if (match != null && match.groupCount >= 1) videoId = match.group(4);
+          }
+
+          if (videoId != null) {
+              if (isWeb) {
+                  // WEB: OFFICIAL WEBVIEW (DIRECT URL)
+                  // Using loadRequest sets the real 'src' attribute. 
+                  // loadHtmlString used 'srcdoc' which YouTube blocks (Error 153).
+                  
+                  // We add 'origin' to satisfy YouTube API (Optional but good practice)
+                  String originParam = "";
+                  try {
+                    originParam = "&origin=${Uri.base.origin}";
+                  } catch (e) {
+                    // Ignore if Uri.base fails
+                  }
+
+                  _webController = WebViewController()
+                    ..loadRequest(Uri.parse('https://www.youtube.com/embed/$videoId?enablejsapi=1&rel=0&autoplay=0$originParam'));
+              } else {
+                  // MOBILE: NATIVE
+                  _mobileController = YoutubePlayerController(
+                    initialVideoId: videoId,
+                    flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
+                  );
+              }
+          }
+      }
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -479,6 +536,39 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                   // VIDEO PLAYER SECTION (Only show if video exists)
+                   if ((isWeb && _webController != null) || (!isWeb && _mobileController != null))
+                     Container(
+                       margin: const EdgeInsets.only(bottom: 15),
+                       height: isWeb ? 400 : null, // Fixed height for Web, AspectRatio for Mobile
+                       child: ClipRRect(
+                         borderRadius: BorderRadius.circular(10),
+                         child: isWeb 
+                               ? WebViewWidget(controller: _webController!) 
+                               : AspectRatio(
+                                   aspectRatio: 16 / 9,
+                                   child: YoutubePlayer(
+                                     controller: _mobileController!,
+                                     showVideoProgressIndicator: true,
+                                     progressIndicatorColor: lightBlue,
+                                   ),
+                                 ),
+                       ),
+                     ),
+
+                   // WEB BACKUP LINK (Only if video exists)
+                   if (isWeb && videoUrl != null && videoUrl.isNotEmpty)
+                     Center(
+                       child: TextButton.icon(
+                         onPressed: () async {
+                           final Uri url = Uri.parse(videoUrl);
+                           if (await canLaunchUrl(url)) await launchUrl(url);
+                         },
+                         icon: const Icon(Icons.open_in_new, color: Colors.grey, size: 16),
+                         label: const Text("Si la vidéo ne charge pas, cliquez ici", style: TextStyle(color: Colors.grey)),
+                       ),
+                     ),
+
                   const Divider(color: Colors.grey),
                   const SizedBox(height: 10),
                   Text(
@@ -491,11 +581,15 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Get.back(),
+              onPressed: () {
+                if(!isWeb) _mobileController?.dispose();
+                Get.back();
+              },
               child: const Text("Fermer", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton.icon(
               onPressed: () {
+                 if(!isWeb) _mobileController?.dispose();
                 Get.back();
                 _completeLesson(index);
                 Get.snackbar("Bravo !", "Leçon terminée", backgroundColor: Colors.green, colorText: Colors.white);
