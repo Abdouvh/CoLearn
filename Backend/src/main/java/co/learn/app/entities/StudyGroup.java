@@ -20,6 +20,10 @@ public class StudyGroup {
     @Column(unique = true)
     private String inviteLink;
 
+    @ManyToOne
+    @JoinColumn(name = "admin_id")
+    private User admin;
+
     @ManyToMany
     @JoinTable(name = "group_members", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> members = new HashSet<>();
@@ -94,5 +98,13 @@ public class StudyGroup {
 
     public void addMember(User user) {
         this.members.add(user);
+    }
+
+    public User getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(User admin) {
+        this.admin = admin;
     }
 }

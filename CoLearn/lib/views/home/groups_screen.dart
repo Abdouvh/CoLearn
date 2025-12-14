@@ -1,6 +1,6 @@
 import 'package:colearn/consts/consts.dart';
 import 'package:colearn/controllers/groups_controller.dart';
-import 'package:colearn/views/home/chat_screen.dart'; // Import Chat Screen
+import 'package:colearn/views/home/group_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -145,9 +145,12 @@ class GroupsScreen extends StatelessWidget {
                         },
                       ),
 
-                      // 2. TAP TO OPEN CHAT
+                      // 2. TAP TO OPEN DETAILS (Tabs)
                       onTap: () {
-                        Get.to(() => ChatScreen(groupName: group['name']));
+                        Get.to(() => GroupDetailsScreen(
+                          groupId: group['id'], 
+                          groupName: group['name']
+                        ));
                       },
                     ),
                   );

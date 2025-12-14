@@ -633,4 +633,122 @@ class ApiService {
       return null;
     }
   }
+
+  // --- GROUP FEATURES (Tasks, Events, Resources, Admin) ---
+
+  // ADMIN
+  static Future<Map<String, dynamic>?> getGroupDetails(int groupId) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/$groupId/details');
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      print("Error fetching group details: $e");
+      return null;
+    }
+  }
+
+  static Future<bool> kickMember(int groupId, int userId, int adminId) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/$groupId/kick');
+      final response = await http.post(
+          Uri.parse(url),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'adminId': adminId, 'userId': userId})
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error kicking member: $e");
+      return false;
+    }
+  }
+
+  // TASKS
+  static Future<List<dynamic>> getGroupTasks(int groupId) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/$groupId/tasks');
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
+      return [];
+    } catch (e) { return []; }
+  }
+
+  static Future<bool> addGroupTask(int groupId, String title) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/$groupId/tasks');
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'title': title})
+      );
+      return response.statusCode == 200;
+    } catch (e) { return false; }
+  }
+
+  static Future<bool> updateTaskStatus(int taskId, String status) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/tasks/$taskId');
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'status': status})
+      );
+      return response.statusCode == 200;
+    } catch (e) { return false; }
+  }
+
+  // EVENTS
+  static Future<List<dynamic>> getGroupEvents(int groupId) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/$groupId/events');
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
+      return [];
+    } catch (e) { return []; }
+  }
+
+  static Future<bool> addGroupEvent(int groupId, String title, String link, String startTime) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/$groupId/events');
+      final response = await http.post(
+          Uri.parse(url),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'title': title,
+            'link': link,
+            'startTime': startTime // ISO 8601 string
+          })
+      );
+      return response.statusCode == 200;
+    } catch (e) { return false; }
+  }
+
+  // RESOURCES
+  static Future<List<dynamic>> getGroupResources(int groupId) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/$groupId/resources');
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
+      return [];
+    } catch (e) { return []; }
+  }
+
+  static Future<bool> addGroupResource(int groupId, String title, String urlLink) async {
+    try {
+      String url = baseUrl.replaceAll('/auth', '/groups/$groupId/resources');
+      final response = await http.post(
+          Uri.parse(url),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'title': title,
+            'url': urlLink,
+            'type': 'LINK'
+          })
+      );
+      return response.statusCode == 200;
+    } catch (e) { return false; }
+  }
 }

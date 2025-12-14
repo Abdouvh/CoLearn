@@ -52,8 +52,9 @@ public class GroupController {
         String suffix = java.util.UUID.randomUUID().toString().substring(0, 4);
         group.setInviteLink("colearn.app/join/" + slug + "-" + suffix);
 
-        // Add creator as member
+        // Add creator as member AND admin
         group.addMember(userOpt.get());
+        group.setAdmin(userOpt.get());
 
         return ResponseEntity.ok(groupRepository.save(group));
     }
@@ -87,5 +88,40 @@ public class GroupController {
         } else {
             return ResponseEntity.status(404).body(Map.of("message", "Groupe introuvable."));
         }
+    }
+
+    // --- ADMIN ACTIONS ---
+
+    @GetMapping("/{groupId}/details")
+    public ResponseEntity<?> getGroupDetails(@PathVariable Long groupId) {
+        return groupRepository.findById(groupId).map(group -> {
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("id", group.getId());
+            response.put("name", group.getName());
+            response.put("inviteLink", group.getInviteLink());
+            response.put("adminId", group.getAdmin() != null ? group.getAdmin().getId() : null);
+            response.put("members", group.getMembers());
+            return ResponseEntity.ok(response);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{groupId}/kick")
+    public ResponseEntity<?> kickMember(@PathVariable Long groupId, @RequestBody Map<String, Long> payload) {
+        Long adminId = payload.get("adminId");
+        Long userIdToKick = payload.get("userId");
+
+        Optional<StudyGroup> groupOpt = groupRepository.findById(groupId);
+        if (groupOpt.isPresent()) {
+            StudyGroup group = groupOpt.get();
+            // Verify Admin
+            if (group.getAdmin() != null && group.getAdmin().getId().equals(adminId)) {
+                // Remove Member
+                group.getMembers().removeIf(u -> u.getId().equals(userIdToKick));
+                groupRepository.save(group);
+                return ResponseEntity.ok(Map.of("message", "User kicked"));
+            }
+            return ResponseEntity.status(403).body("Not authorized");
+        }
+        return ResponseEntity.notFound().build();
     }
 }
