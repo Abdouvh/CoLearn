@@ -303,6 +303,7 @@ public class CourseController {
                     Module newModule = new Module();
                     newModule.setTitle(originalModule.getTitle());
                     newModule.setContent(originalModule.getContent());
+                    newModule.setVideoUrl(originalModule.getVideoUrl()); // Fix: Copy video URL
                     newModule.setLocked(i != 0); // Reset progress: Lock all except first
                     newModules.add(newModule);
                 }
