@@ -657,16 +657,22 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                    ElevatedButton(
                      onPressed: () {
                         Get.back(); // Close dialog
-                        if (score >= (questions.length / 2)) {
-                           _completeLesson(index); // Mark as complete ONLY if passed (optional rule) or just mark done
-                           // _completeLesson already marks it done
+                        int passingScore = (questions.length / 2).ceil();
+                        
+                        if (score >= passingScore) {
+                           _completeLesson(index); // PASS
+                           Get.snackbar("Bravo ! 🏆", "Module validé.", backgroundColor: Colors.green, colorText: Colors.white);
                         } else {
-                           // Option: Force them to retry? For now, we let them finish.
-                           _completeLesson(index); 
+                           // FAIL
+                           Get.snackbar("Oups 😕", "Score insuffisant (${score}/${questions.length}). Réessayez pour passer.", backgroundColor: Colors.redAccent, colorText: Colors.white);
+                           // Do NOT call _completeLesson
                         }
                      },
-                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                     child: const Text("Terminer le cours", style: TextStyle(color: Colors.white)),
+                     style: ElevatedButton.styleFrom(backgroundColor: score >= (questions.length / 2).ceil() ? Colors.green : Colors.orange),
+                     child: Text(
+                        score >= (questions.length / 2).ceil() ? "Terminer le module" : "Réessayer",
+                        style: const TextStyle(color: Colors.white)
+                     ),
                    )
                  ],
                );

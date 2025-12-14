@@ -26,6 +26,145 @@ class _CreateManualCourseScreenState extends State<CreateManualCourseScreen> {
   // List of Modules
   List<Map<String, String>> modules = [];
 
+  void _addQuiz() {
+    TextEditingController titleCtrl = TextEditingController(text: "Quiz: ");
+    List<Map<String, dynamic>> tempQuestions = [];
+
+    Get.defaultDialog(
+      title: "Créer un Quiz",
+      backgroundColor: Colors.grey[900],
+      titleStyle: const TextStyle(color: Colors.white),
+      content: StatefulBuilder(
+        builder: (context, setStateBuilder) {
+          return SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(hintText: "Titre du Quiz", hintStyle: TextStyle(color: Colors.grey)),
+                ),
+                const SizedBox(height: 15),
+                
+                // List of Added Questions
+                if (tempQuestions.isNotEmpty)
+                  Container(
+                    height: 150,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(5)),
+                    child: ListView.builder(
+                      itemCount: tempQuestions.length,
+                      itemBuilder: (ctx, idx) => ListTile(
+                        dense: true,
+                        title: Text("Q${idx+1}: ${tempQuestions[idx]['q']}", style: const TextStyle(color: Colors.white), maxLines: 1),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                          onPressed: () => setStateBuilder(() => tempQuestions.removeAt(idx)),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                ElevatedButton.icon(
+                  onPressed: () {
+                    _showAddQuestionDialog((newQuestion) {
+                      setStateBuilder(() {
+                        tempQuestions.add(newQuestion);
+                      });
+                    });
+                  }, 
+                  icon: const Icon(Icons.add), 
+                  label: const Text("Ajouter une Question")
+                ),
+              ],
+            ),
+          );
+        }
+      ),
+      textConfirm: "Sauvegarder le Quiz",
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.amber[700],
+      onConfirm: () {
+        if (titleCtrl.text.isNotEmpty && tempQuestions.isNotEmpty) {
+          // FORMAT THE QUIZ CONTENT STRING
+          String info = "Quiz généré manuellement.\n\n";
+          for (int i = 0; i < tempQuestions.length; i++) {
+            var q = tempQuestions[i];
+            info += "Question ${i+1}: ${q['q']}\n";
+            info += "Options: A) ${q['options'][0]}, B) ${q['options'][1]}, C) ${q['options'][2]}, D) ${q['options'][3]}\n";
+            info += "Correct Answer: ${['A','B','C','D'][q['correctIndex']]}) ${q['options'][q['correctIndex']]}\n\n";
+          }
+
+          setState(() {
+            modules.add({
+              "title": titleCtrl.text,
+              "content": info,
+              "videoUrl": "" // No video for quizzes usually
+            });
+          });
+          Get.back();
+        } else {
+             Get.snackbar("Erreur", "Ajoutez au moins une question", colorText: Colors.white);
+        }
+      },
+      textCancel: "Annuler",
+    );
+  }
+
+  void _showAddQuestionDialog(Function(Map<String, dynamic>) onSave) {
+    TextEditingController qCtrl = TextEditingController();
+    TextEditingController opt1 = TextEditingController();
+    TextEditingController opt2 = TextEditingController();
+    TextEditingController opt3 = TextEditingController();
+    TextEditingController opt4 = TextEditingController();
+    int correctIndex = 0;
+
+    Get.defaultDialog(
+      title: "Ajouter Question",
+      backgroundColor: Colors.grey[850],
+      content: StatefulBuilder(
+        builder: (ctx, setInnerState) {
+          return Column(
+            children: [
+              TextField(controller: qCtrl, decoration: const InputDecoration(hintText: "Question", hintStyle: TextStyle(color: Colors.grey)), style: const TextStyle(color: Colors.white)),
+              const SizedBox(height: 10),
+              TextField(controller: opt1, decoration: const InputDecoration(hintText: "Option A", hintStyle: TextStyle(color: Colors.grey)), style: const TextStyle(color: Colors.white)),
+              TextField(controller: opt2, decoration: const InputDecoration(hintText: "Option B", hintStyle: TextStyle(color: Colors.grey)), style: const TextStyle(color: Colors.white)),
+              TextField(controller: opt3, decoration: const InputDecoration(hintText: "Option C", hintStyle: TextStyle(color: Colors.grey)), style: const TextStyle(color: Colors.white)),
+              TextField(controller: opt4, decoration: const InputDecoration(hintText: "Option D", hintStyle: TextStyle(color: Colors.grey)), style: const TextStyle(color: Colors.white)),
+              const SizedBox(height: 10),
+              const Text("Réponse Correcte:", style: TextStyle(color: Colors.white)),
+              DropdownButton<int>(
+                value: correctIndex,
+                dropdownColor: Colors.grey[800],
+                items: const [
+                  DropdownMenuItem(value: 0, child: Text("Option A", style: TextStyle(color: Colors.white))),
+                  DropdownMenuItem(value: 1, child: Text("Option B", style: TextStyle(color: Colors.white))),
+                  DropdownMenuItem(value: 2, child: Text("Option C", style: TextStyle(color: Colors.white))),
+                  DropdownMenuItem(value: 3, child: Text("Option D", style: TextStyle(color: Colors.white))),
+                ],
+                onChanged: (val) => setInnerState(() => correctIndex = val!),
+              )
+            ],
+          );
+        }
+      ),
+      textConfirm: "OK",
+      onConfirm: () {
+        if (qCtrl.text.isNotEmpty && opt1.text.isNotEmpty && opt2.text.isNotEmpty) {
+           onSave({
+             'q': qCtrl.text,
+             'options': [opt1.text, opt2.text, opt3.text, opt4.text],
+             'correctIndex': correctIndex
+           });
+           Get.back();
+        }
+      }
+    );
+  }
+
   void _addModule() {
     TextEditingController titleCtrl = TextEditingController();
     TextEditingController contentCtrl = TextEditingController();
@@ -142,9 +281,19 @@ class _CreateManualCourseScreenState extends State<CreateManualCourseScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text("Modules", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                IconButton(
-                  onPressed: _addModule, 
-                  icon: const Icon(Icons.add_circle, color: lightBlue, size: 30)
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: _addModule, 
+                      tooltip: "Ajouter une Leçon",
+                      icon: const Icon(Icons.add_circle, color: lightBlue, size: 30)
+                    ),
+                    IconButton(
+                      onPressed: _addQuiz,
+                      tooltip: "Ajouter un Quiz", 
+                      icon: const Icon(Icons.quiz, color: Colors.amber, size: 30)
+                    ),
+                  ],
                 )
               ],
             ),
