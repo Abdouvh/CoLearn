@@ -615,4 +615,22 @@ class ApiService {
       return [];
     }
   }
+  static Future<Map<String, dynamic>?> findUserByEmail(String email) async {
+    try {
+      var response = await http.post(
+        Uri.parse('$baseUrl/users/lookup'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error searching user: $e");
+      return null;
+    }
+  }
 }

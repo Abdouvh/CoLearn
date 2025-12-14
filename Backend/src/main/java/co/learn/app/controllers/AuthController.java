@@ -10,7 +10,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
-// CRITICAL: This allows your Flutter app (running on a different port) to talk to Spring Boot
+// CRITICAL: This allows your Flutter app (running on a different port) to talk
+// to Spring Boot
 @CrossOrigin(origins = "*")
 public class AuthController {
 
@@ -44,6 +45,7 @@ public class AuthController {
 
         return ResponseEntity.ok(user);
     }
+
     // 1. Get All Users (For Admin Dashboard)
     @GetMapping("/users")
     public List<User> getAllUsers() {
@@ -58,5 +60,22 @@ public class AuthController {
         }
         userRepository.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/users/lookup")
+    public ResponseEntity<?> searchUserByEmail(@RequestBody java.util.Map<String, String> payload) {
+        String email = payload.get("email");
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Email is required"));
+        }
+
+        return userRepository.findByEmail(email).map(user -> {
+            // Return only public info
+            return ResponseEntity.ok(java.util.Map.of(
+                    "id", user.getId(),
+                    "fullName", user.getFullName(),
+                    "avatarUrl", user.getAvatarUrl() != null ? user.getAvatarUrl() : ""));
+        }).orElseGet(() -> ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND)
+                .body(java.util.Map.of("message", "User not found")));
     }
 }

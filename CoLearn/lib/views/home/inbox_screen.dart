@@ -74,6 +74,63 @@ class _InboxScreenState extends State<InboxScreen> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showNewChatDialog,
+        backgroundColor: lightBlue,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  void _showNewChatDialog() {
+    final emailController = TextEditingController();
+    Get.defaultDialog(
+      title: "Nouveau message",
+      content: Column(
+        children: [
+          const Text("Entrez l'email de l'utilisateur :"),
+          const SizedBox(height: 10),
+          TextField(
+            controller: emailController,
+            decoration: const InputDecoration(
+              hintText: "Email",
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      textConfirm: "Discuter",
+      textCancel: "Annuler",
+      confirmTextColor: Colors.white,
+      onConfirm: () async {
+        if (emailController.text.isEmpty) return;
+        
+        Get.back(); // Close dialog
+        
+        // Show loading
+        Get.showSnackbar(const GetSnackBar(
+          message: "Recherche en cours...", 
+          duration: Duration(seconds: 1),
+          showProgressIndicator: true,
+        ));
+
+        var user = await ApiService.findUserByEmail(emailController.text.trim());
+        
+        if (user != null) {
+          // Check if it's yourself
+          if (user['id'] == ApiService.currentUser?['id']) {
+            Get.snackbar("Erreur", "Vous ne pouvez pas vous écrire à vous-même.", backgroundColor: Colors.red, colorText: Colors.white);
+            return;
+          }
+
+          Get.to(() => DirectChatScreen(
+            otherUserId: user['id'],
+            otherUserName: user['fullName'],
+          ))?.then((_) => setState(() {})); 
+        } else {
+          Get.snackbar("Introuvable", "Aucun utilisateur trouvé avec cet email.", backgroundColor: Colors.red, colorText: Colors.white);
+        }
+      }
     );
   }
 }
