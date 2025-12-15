@@ -766,7 +766,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // --- PROFILE TAB ---
   Widget _buildProfileTab() {
     // Get user data from ApiService
-    // Note: In a real app, use GetX or Provider for reactive state.
+    // Use GetX or Provider for reactive state
     // For now, we rely on setState via the Future/Dialog return.
     Map<String, dynamic>? user = ApiService.currentUser;
     String name = user?['fullName'] ?? "Utilisateur CoLearn";

@@ -54,8 +54,7 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     try {
-      // --- UPDATED: Passing new fields to ApiService ---
-      // Make sure your ApiService.registerUser method accepts these arguments!
+      // Passing new fields to ApiService
       final response = await ApiService.registerUser(
         fullName: _nameController.text.trim(),
         email: _emailController.text.trim(),
@@ -135,7 +134,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: blackColor,
-      resizeToAvoidBottomInset: true, // Changed to true so keyboard doesn't hide fields
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -370,7 +369,7 @@ class _SignupScreenState extends State<SignupScreen> {
   // Keep existing Google Logic
   Future<void> _handleGoogleSignup() async {
     // ... same as your existing code ...
-    // Note: Since this is "fake" for the 5-day demo, you can leave the logic or just navigate home
+    // Navigate home
     setState(() => _isLoading = true);
     await Future.delayed(Duration(seconds: 1)); // Fake network
     setState(() => _isLoading = false);

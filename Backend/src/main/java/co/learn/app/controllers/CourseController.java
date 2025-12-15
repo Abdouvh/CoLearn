@@ -48,7 +48,7 @@ public class CourseController {
             return ResponseEntity.badRequest().body("User ID is required");
         }
 
-        // 1. Construct the Prompt (Updated with Escaping Instructions)
+        // 1. Construct the Prompt
         String languageName = "fr".equalsIgnoreCase(lang) ? "French" : "English";
         String prompt = String.format(
                 "Act as an expert tutor. Create a comprehensive course about '%s'.\n" +
@@ -196,7 +196,7 @@ public class CourseController {
 
     // --- FIX: SAVING PROGRESS ---
     @PutMapping("/modules/{id}/unlock")
-    @Transactional // <--- CRITICAL: Forces DB to save the change
+    @Transactional // Forces DB to save the change
     public ResponseEntity<?> unlockModule(@PathVariable Long id) {
         System.out.println(">>> SAVING: Unlocking Module ID " + id);
 

@@ -14,7 +14,7 @@ class _CreateManualCourseScreenState extends State<CreateManualCourseScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   
-  // Replaced Controllers with String Variables for Dropdowns
+  // Dropdown values
   String selectedLevel = "Débutant";
   String selectedLanguage = "Français";
   String selectedCategory = "Développement"; // Default

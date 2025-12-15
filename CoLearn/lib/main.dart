@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       // Start with the Splash Screen
       home: const SplashScreen(),
 
-      // FIX: Define the Named Routes here so Get.toNamed() works
+      // Define the Named Routes here
       getPages: [
         GetPage(name: '/LoginScreen', page: () => const LoginScreen()),
         GetPage(name: '/SignupScreen', page: () => const SignupScreen()),

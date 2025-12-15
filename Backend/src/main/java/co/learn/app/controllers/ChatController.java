@@ -33,7 +33,7 @@ public class ChatController {
 
         // Transform to format frontend expects: { "text": "...", "sender": "...",
         // "isMe": bool }
-        // Note: "isMe" requires knowing the current user.
+        // Check if message is from current user
         // For this fix without full Auth context on frontend calls (using 'Moi'
         // locally),
         // we'll return raw data and let frontend decide "isMe" based on sender name?

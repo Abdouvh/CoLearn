@@ -38,7 +38,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
     description = widget.courseData['description'] ?? "Aucune description disponible.";
 
     // PROGRESS FIX: Check if course is already completed from DB
-    // Note: The backend 'completed' field must be mapped to 'completed' in JSON
+    // Ensure backend 'completed' field is mapped correctly
     isCourseCompleted = widget.courseData['completed'] ?? false;
 
     if (isCourseCompleted) {
@@ -73,7 +73,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
     });
   }
 
-  // --- LOGIC: FINISH LESSON & UPDATE PROGRESS & SAVE TO DB ---
+  // Logic: Finish lesson, update progress, and save to DB
   void _completeLesson(int index) async {
     // 1. Identify Next Module to Unlock
     if (index + 1 < modules.length) {
@@ -83,7 +83,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
       // 2. CALL API TO SAVE "UNLOCKED" STATUS TO BACKEND
       await ApiService.unlockModule(nextModuleId);
 
-      // 3. Update UI Locally
+      // 3. Update UI
       setState(() {
         modules[index + 1]['locked'] = false;
         progressValue = (index + 1) / modules.length;
