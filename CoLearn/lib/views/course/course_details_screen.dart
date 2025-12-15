@@ -11,6 +11,14 @@ import 'package:webview_flutter/webview_flutter.dart'; // NEW
 import 'package:youtube_player_flutter/youtube_player_flutter.dart'; 
 import 'package:url_launcher/url_launcher.dart';
 
+/// Écran de détail et de lecture d'un cours.
+///
+/// Gère :
+/// * L'affichage de la progression.
+/// * La liste des modules (leçons et quiz).
+/// * La lecture des vidéos (Youtube/Webview) et le contenu texte.
+/// * L'espace de discussion (Commentaires).
+/// * La génération du certificat en fin de parcours.
 class CourseDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> courseData;
 

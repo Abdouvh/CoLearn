@@ -1,5 +1,9 @@
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Service gérant l'authentification OAuth (Google Sign-In).
+///
+/// Wrappe le package `google_sign_in` pour récupérer les tokens d'accès
+/// et les transmettre au backend.
 class OAuthFlutterService {
   // Google Sign In
   // Client ID: 649765104219-kp3f49l63csvdcaraijqvqjcpm5oemc0.apps.googleusercontent.com

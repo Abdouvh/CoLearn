@@ -8,11 +8,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Contrôleur gérant l'authentification et l'inscription des utilisateurs.
+ * <p>
+ * Fournit les endpoints pour l'inscription, la connexion et la gestion
+ * administrative des utilisateurs.
+ */
 @RestController
 @RequestMapping("/api/auth")
-// CRITICAL: This allows your Flutter app (running on a different port) to talk
-// to Spring Boot
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // Permet les requêtes depuis l'application mobile Flutter
 public class AuthController {
 
     @Autowired

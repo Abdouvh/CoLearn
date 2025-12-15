@@ -10,6 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Contrôleur gérant les fonctionnalités internes des groupes.
+ * <p>
+ * Gère les entités liées aux groupes : Tâches (Kanban), Événements (Calendrier)
+ * et Ressources partagées.
+ */
 @RestController
 @RequestMapping("/api/groups")
 public class GroupFeatureController {

@@ -3,6 +3,9 @@ import 'package:colearn/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+/// Écran de chat de groupe.
+///
+/// Affiche la conversation en temps réel (polling) pour un groupe donné.
 class ChatScreen extends StatefulWidget {
   final String groupName;
   const ChatScreen({super.key, required this.groupName});

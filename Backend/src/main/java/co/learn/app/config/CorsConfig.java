@@ -10,6 +10,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
 
+/**
+ * Configuration CORS (Cross-Origin Resource Sharing) pour l'application.
+ * <p>
+ * Définit les règles de partage de ressources entre le frontend (Flutter)
+ * et le backend (Spring Boot), permettant les requêtes depuis n'importe quelle
+ * origine
+ * pour simplifier le développement mobile.
+ */
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
@@ -29,7 +37,7 @@ public class CorsConfig implements WebMvcConfigurer {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(false);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

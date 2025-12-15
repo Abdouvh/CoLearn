@@ -5,6 +5,10 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/material.dart' as material;
 
+/// Service de génération de certificats PDF.
+///
+/// Utilise le package `printing` et `pdf` pour créer un document PDF
+/// attestant de la complétion d'un cours.
 class CertificateService {
   static Future<void> generateCertificate({
     required String studentName,

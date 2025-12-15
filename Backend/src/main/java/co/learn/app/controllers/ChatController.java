@@ -12,6 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Contrôleur gérant les fonctionnalités de chat intra-groupe.
+ * <p>
+ * Permet d'envoyer et de récupérer l'historique des messages pour un groupe
+ * d'étude donné.
+ */
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {

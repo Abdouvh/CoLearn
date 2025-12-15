@@ -17,6 +17,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Service de gestion de la réinitialisation de mot de passe par OTP (One-Time
+ * Password).
+ * <p>
+ * Gère le cycle de vie des codes de vérification : génération, envoi par email,
+ * validation et mise à jour finale du mot de passe utilisateur.
+ */
 @Service
 public class PasswordResetService {
 
@@ -30,9 +37,9 @@ public class PasswordResetService {
     private String mailFrom;
 
     public PasswordResetService(UserRepository userRepository,
-                                PasswordResetCodeRepository codeRepository,
-                                JavaMailSender mailSender,
-                                PasswordService passwordService) {
+            PasswordResetCodeRepository codeRepository,
+            JavaMailSender mailSender,
+            PasswordService passwordService) {
         this.userRepository = userRepository;
         this.codeRepository = codeRepository;
         this.mailSender = mailSender;
@@ -60,31 +67,39 @@ public class PasswordResetService {
                 message.setFrom(mailFrom);
             }
             message.setSubject("Code de réinitialisation");
-            message.setText("Bonjour,\n\nVoici votre code de réinitialisation (valable 15 min) : " + code.getCode() + "\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.");
+            message.setText("Bonjour,\n\nVoici votre code de réinitialisation (valable 15 min) : " + code.getCode()
+                    + "\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.");
             try {
                 mailSender.send(message);
             } catch (Exception e) {
                 // Do not fail the request if mail server is unreachable in dev
-                log.warn("Email sending failed for {}. Link printed above. Configure SMTP to enable emails. Error: {}", email, e.getMessage(), e);
+                log.warn("Email sending failed for {}. Link printed above. Configure SMTP to enable emails. Error: {}",
+                        email, e.getMessage(), e);
             }
         }
     }
 
     @Transactional(readOnly = true)
     public boolean verifyCode(String email, String code) {
-        Optional<PasswordResetCode> codeOpt = codeRepository.findTopByEmailAndCodeAndUsedFalseOrderByExpiresAtDesc(email, code);
-        if (codeOpt.isEmpty()) return false;
+        Optional<PasswordResetCode> codeOpt = codeRepository
+                .findTopByEmailAndCodeAndUsedFalseOrderByExpiresAtDesc(email, code);
+        if (codeOpt.isEmpty())
+            return false;
         return codeOpt.get().getExpiresAt().isAfter(Instant.now());
     }
 
     @Transactional
     public boolean confirmResetWithCode(String email, String codeValue, String newPassword) {
-        Optional<PasswordResetCode> codeOpt = codeRepository.findTopByEmailAndCodeAndUsedFalseOrderByExpiresAtDesc(email, codeValue);
-        if (codeOpt.isEmpty()) return false;
+        Optional<PasswordResetCode> codeOpt = codeRepository
+                .findTopByEmailAndCodeAndUsedFalseOrderByExpiresAtDesc(email, codeValue);
+        if (codeOpt.isEmpty())
+            return false;
         PasswordResetCode c = codeOpt.get();
-        if (c.getExpiresAt().isBefore(Instant.now())) return false;
+        if (c.getExpiresAt().isBefore(Instant.now()))
+            return false;
         Optional<User> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) return false;
+        if (userOpt.isEmpty())
+            return false;
         User user = userOpt.get();
         user.setPassword(passwordService.hashPassword(newPassword));
         userRepository.save(user);
@@ -94,12 +109,9 @@ public class PasswordResetService {
     }
 
     private String generateSixDigitCode() {
-        int n = (int)(Math.random() * 900000) + 100000; // 100000-999999
+        int n = (int) (Math.random() * 900000) + 100000; // 100000-999999
         return String.valueOf(n);
     }
 
     // Legacy token path removed
 }
-
-
-

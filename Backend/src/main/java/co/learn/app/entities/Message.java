@@ -4,6 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * Entité représentant un message privé direct entre deux utilisateurs.
+ * <p>
+ * Diffère des messages de groupe car il est lié strictement à un expéditeur et
+ * un destinataire.
+ */
 @Entity
 @Data
 @Table(name = "messages")

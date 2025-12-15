@@ -5,6 +5,10 @@ import 'package:colearn/views/widgets_common/custom_spinner.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Écran de démarrage (Splash Screen).
+///
+/// Affiche le logo et un spinner pendant quelques secondes avant de rediriger
+/// l'utilisateur vers l'écran de connexion (`LoginScreen`).
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 

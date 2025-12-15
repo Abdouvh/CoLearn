@@ -12,6 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 
+/// Écran d'inscription utilisateur.
+///
+/// Permet la création d'un nouveau compte avec gestion :
+/// * Des champs de texte (Nom, Email, Mot de passe).
+/// * Des préférences utilisateur (Rôle, Expertise, Style d'apprentissage).
+/// * De l'intégration Google Sign-In.
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -39,6 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final List<String> expertiseLevels = ['Débutant', 'Intermédiaire', 'Expert'];
   final List<String> learningStyles = ['Visuel', 'Auditif', 'Pratique'];
 
+  /// Vérifie si tous les champs requis sont remplis et les CGU acceptées.
   bool get _isFormValid {
     return _nameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
@@ -46,6 +53,10 @@ class _SignupScreenState extends State<SignupScreen> {
         isCheck == true;
   }
 
+  /// Gère le processus d'inscription via l'API.
+  ///
+  /// Envoie les données du formulaire au backend et redirige vers l'accueil
+  /// en cas de succès. Affiche une erreur sinon.
   Future<void> _handleRegistration() async {
     if (!_isFormValid) return;
 
@@ -87,7 +98,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  // Helper Widget for Dropdowns to keep code clean
+  /// Construit un widget de menu déroulant (Dropdown) standardisé.
   Widget _buildDropdown(String label, String currentValue, List<String> items, Function(String?) onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

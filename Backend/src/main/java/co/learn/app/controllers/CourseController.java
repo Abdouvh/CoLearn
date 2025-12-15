@@ -13,6 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contrôleur principal gérant le cycle de vie des cours.
+ * <p>
+ * Inclut la génération par IA (Gemini), la création manuelle, l'inscription
+ * (clonage),
+ * la progression (déverrouillage modules) et la notation.
+ */
 @RestController
 @RequestMapping("/api/courses")
 @CrossOrigin(origins = "*")
@@ -194,9 +201,9 @@ public class CourseController {
         }
     }
 
-    // --- FIX: SAVING PROGRESS ---
+    // --- PROGRESSION ---
     @PutMapping("/modules/{id}/unlock")
-    @Transactional // Forces DB to save the change
+    @Transactional
     public ResponseEntity<?> unlockModule(@PathVariable Long id) {
         System.out.println(">>> SAVING: Unlocking Module ID " + id);
 

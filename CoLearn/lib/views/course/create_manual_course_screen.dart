@@ -3,6 +3,10 @@ import 'package:colearn/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Écran de création manuelle de cours (pour les Formateurs).
+///
+/// Permet de créer un cours complet : titre, description, modules et quiz.
+/// Les modules peuvent contenir du texte et des liens vidéo YouTube.
 class CreateManualCourseScreen extends StatefulWidget {
   const CreateManualCourseScreen({super.key});
 

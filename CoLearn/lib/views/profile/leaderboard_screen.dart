@@ -3,6 +3,10 @@ import 'package:colearn/consts/consts.dart';
 import 'package:colearn/services/api_service.dart';
 import 'package:flutter/material.dart';
 
+/// Écran de classement (Leaderboard).
+///
+/// Affiche la liste des utilisateurs triés par XP (Experience Points).
+/// Met en évidence l'utilisateur actuel et les 3 premiers du classement.
 class LeaderboardScreen extends StatelessWidget {
   const LeaderboardScreen({Key? key}) : super(key: key);
 

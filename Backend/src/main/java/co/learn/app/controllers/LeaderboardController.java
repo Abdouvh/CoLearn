@@ -9,6 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Contrôleur pour l'affichage du classement (Leaderboard).
+ * <p>
+ * Expose les 10 meilleurs utilisateurs triés par XP (Points d'Expérience).
+ */
 @RestController
 @RequestMapping("/api/leaderboard")
 @CrossOrigin(origins = "*")

@@ -5,6 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+/// Écran de gestion des groupes d'étude.
+///
+/// Permet de :
+/// * Voir la liste des groupes rejoints.
+/// * Créer un nouveau groupe.
+/// * Rejoindre un groupe existant via un lien.
 class GroupsScreen extends StatelessWidget {
   const GroupsScreen({super.key});
 

@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'course_details_screen.dart';
 
+/// Écran de génération de cours par IA.
+///
+/// Permet à l'utilisateur de saisir un sujet, un niveau et une langue.
+/// Simule ensuite une phase de "réflexion" avant d'appeler l'API pour générer le cours.
 class CreateCourseScreen extends StatefulWidget {
   const CreateCourseScreen({super.key});
 

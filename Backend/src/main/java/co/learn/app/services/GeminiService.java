@@ -6,6 +6,13 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 import java.util.*;
 
+/**
+ * Service d'intégration avec l'API Google Gemini (IA Générative).
+ * <p>
+ * Gère la communication avec l'API pour générer du contenu de cours
+ * basé sur des prompts textuels. Inclut une gestion des quotas et des
+ * tentatives (retries).
+ */
 @Service
 public class GeminiService {
 

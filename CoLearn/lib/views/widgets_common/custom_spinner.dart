@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+/// Widget de chargement personnalisé.
+///
+/// Affiche un spinner animé dessiné manuellement avec [CustomPainter].
 class CustomSpinner extends StatefulWidget {
   final double size;
   final Color? color;

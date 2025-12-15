@@ -13,6 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * Contrôleur gérant les opérations sur le profil utilisateur.
+ * <p>
+ * Inclut la gestion du mot de passe oublié, la confirmation OTP,
+ * l'authentification OAuth Google et la mise à jour du profil.
+ */
 @RestController
 public class UserController {
 

@@ -3,6 +3,13 @@ package co.learn.app.entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Entité représentant un événement ou une réunion planifiée pour un groupe
+ * d'étude.
+ * <p>
+ * Contient le titre, le lien de la réunion (ex: Google Meet) et l'heure de
+ * début.
+ */
 @Entity
 @Table(name = "group_events")
 public class GroupEvent {

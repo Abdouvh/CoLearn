@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart'; // For kIsWeb check
 
+/// Service principal pour la communication avec le backend Spring Boot.
+///
+/// Gère toutes les requêtes HTTP (Authentification, Cours, Groupes, Chat, etc.).
+/// Adapte l'URL de base selon l'environnement (Web ou Émulateur Android).
 class ApiService {
   // 1. IP CONFIGURATION
   static String get baseUrl {

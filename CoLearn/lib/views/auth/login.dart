@@ -10,6 +10,10 @@ import 'package:colearn/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Écran de connexion utilisateur.
+///
+/// Permet l'authentification via Email/Mot de passe ou Google.
+/// Redirige vers `AdminDashboard` ou `HomeScreen` selon le rôle de l'utilisateur.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 

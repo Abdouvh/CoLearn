@@ -3,6 +3,11 @@ package co.learn.app.entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Entité représentant un message dans un chat de groupe.
+ * <p>
+ * Un message est lié à un expéditeur et au groupe auquel il appartient.
+ */
 @Entity
 @Table(name = "chat_messages")
 public class ChatMessage {

@@ -2,6 +2,11 @@ package co.learn.app.entities;
 
 import jakarta.persistence.*;
 
+/**
+ * Entité représentant une ressource partagée au sein d'un groupe d'étude.
+ * <p>
+ * Peut être un fichier PDF, un lien web ou une vidéo.
+ */
 @Entity
 @Table(name = "group_resources")
 public class GroupResource {

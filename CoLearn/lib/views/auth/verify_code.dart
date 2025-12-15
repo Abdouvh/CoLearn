@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'new_password.dart';
 
+/// Écran de vérification du code (Étape 2).
+///
+/// L'utilisateur entre le code à 6 chiffres reçu par email.
 class VerifyCodeScreen extends StatefulWidget {
   final String email;
   const VerifyCodeScreen({super.key, required this.email});

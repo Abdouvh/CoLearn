@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:colearn/views/auth/login.dart';
 
+/// Écran de définition du nouveau mot de passe (Étape 3).
+///
+/// L'utilisateur définit et confirme son nouveau mot de passe.
 class NewPasswordScreen extends StatefulWidget {
   final String email;
   final String code;

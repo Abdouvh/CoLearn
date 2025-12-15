@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:colearn/views/auth/verify_code.dart';
 
+/// Écran de récupération de mot de passe (Étape 1).
+///
+/// L'utilisateur saisit son email pour recevoir un code de vérification.
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 

@@ -14,6 +14,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contrôleur gérant les commentaires sur les cours.
+ * <p>
+ * Permet d'ajouter et de lister les commentaires. Gère l'agrégation des
+ * commentaires
+ * sur les cours clonés pour les rediriger vers le cours original.
+ */
 @RestController
 @RequestMapping("/api/comments")
 @CrossOrigin(origins = "*")

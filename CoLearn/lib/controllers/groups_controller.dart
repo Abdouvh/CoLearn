@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:colearn/services/api_service.dart';
 
+/// Contrôleur GetX pour la gestion des groupes d'étude.
+///
+/// Gère l'état de la liste des groupes, le chargement, ainsi que les actions
+/// de création et d'adhésion à un groupe via lien.
 class GroupsController extends GetxController {
   var myGroups = <Map<String, dynamic>>[].obs;
   var isLoading = false.obs;

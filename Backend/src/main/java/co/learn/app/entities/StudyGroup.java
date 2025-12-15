@@ -4,6 +4,12 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Entité représentant un groupe de travail collaboratif.
+ * <p>
+ * Regroupe des utilisateurs autour d'un sujet commun avec des outils comme
+ * le chat, le partage de ressources et la planification de sessions.
+ */
 @Entity
 @Table(name = "study_groups")
 public class StudyGroup {

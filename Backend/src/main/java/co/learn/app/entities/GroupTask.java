@@ -2,6 +2,12 @@ package co.learn.app.entities;
 
 import jakarta.persistence.*;
 
+/**
+ * Entité représentant une tâche à accomplir au sein d'un groupe.
+ * <p>
+ * Utilisée dans le tableau de bord collaboratif (Kanban).
+ * Statuts possibles : TODO, DOING, DONE.
+ */
 @Entity
 @Table(name = "group_tasks")
 public class GroupTask {

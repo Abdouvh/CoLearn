@@ -6,6 +6,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart'; // REQUIRED for kIsWeb
 
+/// Tableau de bord administrateur.
+///
+/// Permet de gérer les utilisateurs (voir la liste, supprimer des comptes).
+/// Accessible uniquement aux utilisateurs ayant le rôle ADMIN.
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 

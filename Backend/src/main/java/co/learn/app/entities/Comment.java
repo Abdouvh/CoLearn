@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * Entité représentant un commentaire ou une question sur un cours.
+ * <p>
+ * Permet aux utilisateurs d'interagir publiquement sur le contenu des cours.
+ */
 @Entity
 @Data
 @Table(name = "comments")

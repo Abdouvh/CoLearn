@@ -6,6 +6,10 @@ import 'package:colearn/views/home/direct_chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Écran de la boite de réception (Messagerie).
+///
+/// Affiche la liste des conversations privées en cours.
+/// Permet également d'initier une nouvelle conversation par email.
 class InboxScreen extends StatefulWidget {
   const InboxScreen({super.key});
 

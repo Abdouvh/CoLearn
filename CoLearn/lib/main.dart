@@ -6,10 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'consts/consts.dart';
 
+/// Point d'entrée de l'application Flutter.
 void main() {
   runApp(const MyApp());
 }
 
+/// Widget racine de l'application.
+///
+/// Configure GetX, le thème global (font, couleurs) et les routes nommées.
+/// Démarre sur le `SplashScreen`.
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 

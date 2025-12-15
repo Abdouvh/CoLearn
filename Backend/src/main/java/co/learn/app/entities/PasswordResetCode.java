@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.Instant;
 
+/**
+ * Entité stockant les codes de réinitialisation de mot de passe.
+ * <p>
+ * Ces codes ont une durée de vie limitée et sont invalidés après utilisation.
+ */
 @Entity
 @Table(name = "password_reset_codes")
 @Data
@@ -25,5 +30,3 @@ public class PasswordResetCode {
     @Column(nullable = false)
     private boolean used = false;
 }
-
-

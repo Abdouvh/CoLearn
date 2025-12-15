@@ -15,63 +15,70 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Service gérant l'authentification OAuth2 (Google Sign-In).
+ * <p>
+ * Vérifie les tokens d'identité fournis par le client mobile
+ * et gère la création ou la mise à jour des comptes utilisateurs associés.
+ */
 @Service
 public class OAuthService {
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private PasswordService passwordService;
-    
+
     @Value("${oauth.google.client-id:}")
     private String googleClientId;
-    
+
     // Google OAuth - Verify token and get user info
     public Map<String, Object> verifyGoogleToken(String idTokenString) throws Exception {
         // If client ID is not configured, skip verification (for development)
         if (googleClientId == null || googleClientId.isEmpty() || googleClientId.equals("YOUR_GOOGLE_CLIENT_ID")) {
             // Decode token without verification (only for development)
             // In production, you should always verify the token
-            throw new Exception("Google Client ID non configuré. Veuillez configurer oauth.google.client-id dans application.properties");
+            throw new Exception(
+                    "Google Client ID non configuré. Veuillez configurer oauth.google.client-id dans application.properties");
         }
-        
+
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                new NetHttpTransport(), 
+                new NetHttpTransport(),
                 new GsonFactory())
                 .setAudience(Collections.singletonList(googleClientId))
                 .build();
-        
+
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken != null) {
             GoogleIdToken.Payload payload = idToken.getPayload();
-            
+
             String email = payload.getEmail();
             String name = (String) payload.get("name");
             String picture = (String) payload.get("picture");
             String userId = payload.getSubject();
-            
+
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("email", email);
             userInfo.put("fullName", name);
             userInfo.put("avatarUrl", picture);
             userInfo.put("providerId", userId);
             userInfo.put("provider", "google");
-            
+
             return userInfo;
         }
         throw new Exception("Token Google invalide");
     }
-    
+
     // Register or login with OAuth
     public User authenticateOAuth(Map<String, Object> userInfo) {
         String email = (String) userInfo.get("email");
         String provider = (String) userInfo.get("provider");
         String providerId = (String) userInfo.get("providerId");
-        
+
         // Check if user exists by email
         Optional<User> existingUser = userRepository.findByEmail(email);
-        
+
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             // Update provider info if not set
@@ -99,4 +106,3 @@ public class OAuthService {
         }
     }
 }
-

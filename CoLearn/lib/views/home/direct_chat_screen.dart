@@ -5,6 +5,10 @@ import 'package:colearn/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+/// Écran de messagerie privée (1-to-1).
+///
+/// Permet de discuter en direct avec un autre utilisateur.
+/// Utilise un timer pour rafraîchir les messages (Polling).
 class DirectChatScreen extends StatefulWidget {
   final int otherUserId;
   final String otherUserName;

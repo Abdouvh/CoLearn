@@ -2,6 +2,13 @@ package co.learn.app.entities;
 
 import jakarta.persistence.*;
 
+/**
+ * Entité représentant un utilisateur de la plateforme.
+ * <p>
+ * Contient les informations de profil, les préférences d'apprentissage,
+ * les méthodes de connexion (Email/Mot de passe ou OAuth) et la progression
+ * (XP).
+ */
 @Entity
 @Table(name = "users")
 public class User {

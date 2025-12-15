@@ -12,6 +12,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contrôleur gérant la messagerie privée (Inbox).
+ * <p>
+ * Gère l'envoi de messages directs entre utilisateurs et la récupération des
+ * conversations.
+ */
 @RestController
 @RequestMapping("/api/messages")
 @CrossOrigin(origins = "*")

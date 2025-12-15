@@ -14,6 +14,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Contrôleur gérant les groupes d'étude.
+ * <p>
+ * Gestion de la création, de la recherche, de l'adhésion via lien et de
+ * l'administration des membres.
+ */
 @RestController
 @RequestMapping("/api/groups")
 public class GroupController {

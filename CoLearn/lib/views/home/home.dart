@@ -17,6 +17,13 @@ import '../course/course_details_screen.dart';
 import 'package:colearn/views/profile/leaderboard_screen.dart'; // NEW IMPORT
 import 'package:colearn/views/home/inbox_screen.dart'; // Add import
 
+/// Écran principal de l'application (Dashboard).
+///
+/// Contient la navigation inférieure avec 4 onglets :
+/// 1. Accueil : Vue d'ensemble, catégories, cours suggérés/populaires.
+/// 2. Recherche : Recherche de cours par mots-clés.
+/// 3. Mes Cours : Liste des cours rejoints ou créés (pour les formateurs).
+/// 4. Profil : Affichage et édition du profil utilisateur.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -199,6 +206,12 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   // --- HOME TAB ---
+  // --- HOME TAB ---
+  
+  /// Construit l'onglet Accueil.
+  ///
+  /// Affiche un message de bienvenue, des catégories et une sélection de cours.
+  /// Adapte l'affichage si l'utilisateur est un FORMATEUR.
   Widget _buildHomeTab() {
     bool isInstructor = (ApiService.currentUser?['role']?.toString().toUpperCase() ?? '') == 'FORMATEUR';
 
@@ -530,6 +543,9 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> searchResults = [];
   bool isSearching = false;
 
+  /// Construit l'onglet Recherche.
+  ///
+  /// Permet à l'utilisateur de chercher des cours via une barre de recherche.
   Widget _buildSearchTab() {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -595,6 +611,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // --- MY COURSES TAB (Dynamic) ---
+  // --- MY COURSES TAB (Dynamic) ---
+  
+  /// Construit l'onglet Mes Cours.
+  ///
+  /// Affiche la liste des cours rejoints par l'étudiant, séparés par statut 
+  /// (En cours / Terminés).
   Widget _buildCoursesTab() {
     return Padding(
       padding: const EdgeInsets.all(20),

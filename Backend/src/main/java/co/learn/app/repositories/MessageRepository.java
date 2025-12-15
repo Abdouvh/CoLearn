@@ -6,6 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 
+/**
+ * Interface d'accès aux données pour la messagerie privée.
+ * <p>
+ * Contient des requêtes personnalisées pour récupérer les conversations et
+ * l'inbox.
+ */
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT m FROM Message m WHERE (m.sender.id = :user1Id AND m.receiver.id = :user2Id) " +
